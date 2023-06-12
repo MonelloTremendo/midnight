@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/static/favicon.ico">
+  <title>Background</title>
+
+  <script src="/static/js/jquery-3.7.0.js"></script>
+
+  <!-- ANIMATED BACKGROUND -->
+  <script type="module" src="/static/retrowave-scene-master/demo.js"></script>
+  <link rel="stylesheet" type="text/css" href="/static/retrowave-scene-master/demo.css" />
+  <!-- ANIMATED BACKGROUND -->
+
+  <!-- 98.CSS -->
+  <link rel="stylesheet" href="/static/css/98.css">
+  <!-- 98.CSS -->
+
+</head>
+
+<body>
+
+  <!-- ANIMATED BACKGROUND -->
+  <div id="retrowaveSceneContainer"></div>
+  <!-- ANIMATED BACKGROUND -->
+
+  <!-- 98.CSS -->
+  <div class="window" style="margin: 48px; width: 250px">
+    <div class="title-bar">
+      <div class="title-bar-text">
+        My First VB4 Program
+      </div>
+
+      <div class="title-bar-controls">
+        <button aria-label="Minimize"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body">
+      <p>Hello, world!</p>
+      <section class="field-row" style="justify-content: flex-end">
+        <button>OK</button>
+        <button>Cancel</button>
+      </section>
+    </div>
+  </div>
+  <!-- 98.CSS -->
+
+
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-text">Content</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body">
+      <h1 style="margin: 0; text-align: center">
+        <img src="/assets/images/computer-5.png" alt="" />
+        <img src="/assets/images/logo.png" alt="" style="height: 6rem" />
+        <img src="/assets/images/computer-5.png" alt="" />
+      </h1>
+      <form action="/" id="searchForm">
+        <div class="field-row">
+          <label for="search">Search item</label>
+          <input id="search" type="text" autofocus />
+          <button style="display: flex; align-items: center; gap: 0.5em" type="submit">
+            Search
+            <img src="/assets/images/magnifying_glass_4-0.png" alt="" height="12" width="12" />
+          </button>
+        </div>
+      </form>
+
+      <div id="flagContainer"></div>
+
+      <h4 style="margin: 0.8em 0">Results</h4>
+
+      <div class="products"></div>
+    </div>
+
+    <div class="status-bar">
+      <p class="status-bar-field">Press F1 for help</p>
+      <p class="status-bar-field">You are visitor number 1337!</p>
+      <p class="status-bar-field">CPU Usage: <span id="cpu">14</span>%</p>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+  const songs = [
+    '/static/music/fashion-ambient-11305.mp3',
+    '/static/music/space-chillout-14194.mp3',
+  ];
+  $('html').click(() => {
+    var randomNumber =  parseInt(Math.random() * 3);
+    const audio = new Audio(songs[randomNumber]);
+    audio.volume = 0.2;
+    audio.play();
+    return $('html').off('click');
+  });
+</script>
+
+</body>
+
+</html>

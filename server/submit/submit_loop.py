@@ -5,8 +5,10 @@ import random
 import time
 from collections import defaultdict
 
-from server import app, database, reloader
-from server.models import Flag, FlagStatus, SubmitResult
+from server import app
+from server.database import database
+from server.config import config
+from server.database.models import Flag, FlagStatus, SubmitResult
 
 
 def get_fair_share(groups, limit):
@@ -60,7 +62,7 @@ def run_loop():
     while True:
         submit_start_time = time.time()
 
-        config = reloader.get_config()
+        config = config.get_config()
 
         skip_time = round(submit_start_time - config['FLAG_LIFETIME'])
         db.execute("UPDATE flags SET status = ? WHERE status = ? AND time < ?",

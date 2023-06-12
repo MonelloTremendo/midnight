@@ -1,7 +1,7 @@
 import requests
 
 from server import app
-from server.models import FlagStatus, SubmitResult
+from server.database.models import FlagStatus, SubmitResult
 
 
 RESPONSES = {

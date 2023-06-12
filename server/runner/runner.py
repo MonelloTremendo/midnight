@@ -98,30 +98,30 @@ POST_PERIOD = 5
 SERVER_TIMEOUT = 5
 
 
-def get_config(args):
-    req = Request(urljoin(args.server_url, '/api/get_config'))
-    if args.token is not None:
-        req.add_header('X-Token', args.token)
-    with urlopen(req, timeout=SERVER_TIMEOUT) as conn:
-        if conn.status != 200:
-            raise APIException(conn.read())
-
-        return json.loads(conn.read().decode())
-
-
-def post_flags(args, flags):
-    sploit_name = os.path.basename(args.sploit)
-        
-    data = [{'flag': item['flag'], 'sploit': sploit_name, 'team': item['team']}
-            for item in flags]
-
-    req = Request(urljoin(args.server_url, '/api/post_flags'))
-    req.add_header('Content-Type', 'application/json')
-    if args.token is not None:
-        req.add_header('X-Token', args.token)
-    with urlopen(req, data=json.dumps(data).encode(), timeout=SERVER_TIMEOUT) as conn:
-        if conn.status != 200:
-            raise Exception(conn.read())
+#def get_config(args):
+#    req = Request(urljoin(args.server_url, '/api/get_config'))
+#    if args.token is not None:
+#        req.add_header('X-Token', args.token)
+#    with urlopen(req, timeout=SERVER_TIMEOUT) as conn:
+#        if conn.status != 200:
+#            raise APIException(conn.read())
+#
+#        return json.loads(conn.read().decode())
+#
+#
+#def post_flags(args, flags):
+#    sploit_name = os.path.basename(args.sploit)
+#        
+#    data = [{'flag': item['flag'], 'sploit': sploit_name, 'team': item['team']}
+#            for item in flags]
+#
+#    req = Request(urljoin(args.server_url, '/api/post_flags'))
+#    req.add_header('Content-Type', 'application/json')
+#    if args.token is not None:
+#        req.add_header('X-Token', args.token)
+#    with urlopen(req, data=json.dumps(data).encode(), timeout=SERVER_TIMEOUT) as conn:
+#        if conn.status != 200:
+#            raise Exception(conn.read())
 
 def once_in_a_period(period):
     for iter_no in itertools.count(1):
@@ -134,24 +134,24 @@ def once_in_a_period(period):
         if exit_event.is_set():
             break
 
-def run_post_loop(args):
-    try:
-        for _ in once_in_a_period(POST_PERIOD):
-            flags_to_post = flag_storage.pick_flags()
-
-            if flags_to_post:
-                try:
-                    post_flags(args, flags_to_post)
-
-                    flag_storage.mark_as_sent(len(flags_to_post))
-                    logging.info('{} flags posted to the server ({} in the queue)'.format(
-                        len(flags_to_post), flag_storage.queue_size))
-                except Exception as e:
-                    logging.error("Can't post flags to the server: {}".format(repr(e)))
-                    logging.info("The flags will be posted next time")
-    except Exception as e:
-        logging.critical('Posting loop died: {}'.format(repr(e)))
-        shutdown()
+#def run_post_loop(args):
+#    try:
+#        for _ in once_in_a_period(POST_PERIOD):
+#            flags_to_post = flag_storage.pick_flags()
+#
+#            if flags_to_post:
+#                try:
+#                    post_flags(args, flags_to_post)
+#
+#                    flag_storage.mark_as_sent(len(flags_to_post))
+#                    logging.info('{} flags posted to the server ({} in the queue)'.format(
+#                        len(flags_to_post), flag_storage.queue_size))
+#                except Exception as e:
+#                    logging.error("Can't post flags to the server: {}".format(repr(e)))
+#                    logging.info("The flags will be posted next time")
+#    except Exception as e:
+#        logging.critical('Posting loop died: {}'.format(repr(e)))
+#        shutdown()
 
 
 def process_sploit_output(stream, args, team_name, flag_format, attack_no):
@@ -199,8 +199,6 @@ def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
 
             proc, instance_id = launch_sploit(args, team_name, team_addr, attack_no, flag_format)
     except Exception as e:
-        if attack_no == 1:
-            shutdown()
         return
 
     try:
@@ -218,28 +216,28 @@ def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
     except Exception as e:
         pass
 
-def main(args):
-    threading.Thread(target=lambda: run_post_loop(args)).start()
-
-    pool = ThreadPoolExecutor(max_workers=args.pool_size)
-    for attack_no in once_in_a_period(args.attack_period):
-        for team_name, team_addr in teams.items():
-            pool.submit(run_sploit, args, team_name, team_addr, attack_no, max_runtime, flag_format)
-
-
-def shutdown():
-    # Stop run_post_loop thread
-    exit_event.set()
-    # Kill all child processes (so consume_sploit_ouput and run_sploit also will stop)
-    with instance_lock:
-        for proc in instance_storage.instances.values():
-            proc.kill()
+#def main(args):
+#    threading.Thread(target=lambda: run_post_loop(args)).start()
+#
+#    pool = ThreadPoolExecutor(max_workers=args.pool_size)
+#    for attack_no in once_in_a_period(args.attack_period):
+#        for team_name, team_addr in teams.items():
+#            pool.submit(run_sploit, args, team_name, team_addr, attack_no, max_runtime, flag_format)
 
 
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        logging.info('Got Ctrl+C, shutting down')
-    finally:
-        shutdown()
+#def shutdown():
+#    # Stop run_post_loop thread
+#    exit_event.set()
+#    # Kill all child processes (so consume_sploit_ouput and run_sploit also will stop)
+#    with instance_lock:
+#        for proc in instance_storage.instances.values():
+#            proc.kill()
+
+
+#if __name__ == '__main__':
+#    try:
+#        main()
+#    except KeyboardInterrupt:
+#        logging.info('Got Ctrl+C, shutting down')
+#    finally:
+#        shutdown()

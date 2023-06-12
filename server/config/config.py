@@ -41,3 +41,6 @@ CONFIG = {
     'ENABLE_API_AUTH': False,
     'API_TOKEN': '00000000000000000000'
 }
+
+def get_config():
+    return CONFIG

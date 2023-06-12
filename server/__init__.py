@@ -10,5 +10,9 @@ for handler in app.logger.handlers:
     handler.setLevel(logging.DEBUG)
 
 
-import server.api
-import server.views
+import server.routes.api
+import server.routes.views
+import server.routes.teams
+import server.routes.background
+import server.routes.history
+import server.routes.exploits
