@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS flags (
     flag TEXT PRIMARY KEY,
     run_id INTEGER NOT NULL,
-    status INTEGER,
+    status INTEGER NOT NULL,
     checksystem_response TEXT,
     FOREIGN KEY(run_id) REFERENCES runs(id)    
 );
@@ -9,14 +9,15 @@ CREATE TABLE IF NOT EXISTS flags (
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    ip TEXT NOT NULL   
+    ip TEXT NOT NULL  
 );
 
 CREATE TABLE IF NOT EXISTS exploits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    author TEXT,
+    name TEXT,
     threads INTEGER NOT NULL,
     timeout INTEGER NOT NULL,
+    running INTEGER DEFAULT 0,
     source TEXT
 );
 
@@ -26,16 +27,16 @@ CREATE TABLE IF NOT EXISTS runs (
     team_id INTEGER NOT NULL,
     time INTEGER NOT NULL,
     output TEXT,
-    FOREIGN KEY(exploit_id) REFERENCES exploits(id),
-    FOREIGN KEY(team_id) REFERENCES teams(id)
+    FOREIGN KEY(exploit_id) REFERENCES exploits(id) ON DELETE SET NULL,
+    FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS exploit_teams (
     exploit_id INTEGER NOT NULL,
     team_id INTEGER NOT NULL,
     PRIMARY KEY(exploit_id, team_id),
-    FOREIGN KEY(exploit_id) REFERENCES exploits(id),
-    FOREIGN KEY(team_id) REFERENCES teams(id)    
+    FOREIGN KEY(exploit_id) REFERENCES exploits(id) ON DELETE CASCADE,
+    FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
 -- CREATE INDEX IF NOT EXISTS flags_sploit ON flags(sploit);

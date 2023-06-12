@@ -55,7 +55,7 @@ def teams_delete(uid: int):
     conn = database.get()
 
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM teams WHERE id = ?", (uid,))
+    cursor.execute("UPDATE teams SET deleted = 1 WHERE id = ?", (uid,))
     conn.commit()
 
     return jsonify({}), 204

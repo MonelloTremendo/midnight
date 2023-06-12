@@ -1,30 +1,60 @@
-#!/usr/bin/env python3
-
-import sys
-
-assert sys.version_info >= (3, 4), 'Python < 3.4 is not supported'
-
-import argparse
-import binascii
 import itertools
-import json
 import logging
 import os
-import random
 import re
-import stat
 import subprocess
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum
-from math import ceil
-from urllib.parse import urljoin
-from urllib.request import Request, urlopen
+
+from server.database import database
+
+MAX_WORKERS = 16
+
+def singleton(class_):
+    instances = {}
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
+
+def once_in_a_period(period):
+    for iter_no in itertools.count(1):
+        start_time = time.time()
+        yield iter_no
+
+        time_spent = time.time() - start_time
+        if period > time_spent:
+            exit_event.wait(period - time_spent)
+        if exit_event.is_set():
+            break
+
+@singleton
+class ExploitRunner:
+    def __init__(self) -> None:
+        self.pool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+        self.listLock = threading.RLock()
+        self.exploits = {}
+
+        self.update_list()
 
 
-#log_format = '%(asctime)s {} %(message)s'.format(highlight('%(levelname)s', [Style.FG_YELLOW]))
-#logging.basicConfig(format=log_format, datefmt='%H:%M:%S', level=logging.DEBUG)
+    def update_list(self):
+        result = database.query("SELECT * FROM exploits")
+
+        with self.listLock:
+            self.exploits = {item["id"] : {"name": item["name"], "threads": item["threads"], "timeout": item["timeout"], "source": item["source"], "running": item["running"] == 1} for item in result}
+
+    def print_list(self):
+        self.update_list()
+
+        print(self.exploits)
+
+    def execute_scripts(self):
+        for k, v in self.exploits.items():
+            print(k, v)
+
 
 
 class FlagStorage:
@@ -97,64 +127,7 @@ instance_lock = threading.RLock()
 POST_PERIOD = 5
 SERVER_TIMEOUT = 5
 
-
-#def get_config(args):
-#    req = Request(urljoin(args.server_url, '/api/get_config'))
-#    if args.token is not None:
-#        req.add_header('X-Token', args.token)
-#    with urlopen(req, timeout=SERVER_TIMEOUT) as conn:
-#        if conn.status != 200:
-#            raise APIException(conn.read())
-#
-#        return json.loads(conn.read().decode())
-#
-#
-#def post_flags(args, flags):
-#    sploit_name = os.path.basename(args.sploit)
-#        
-#    data = [{'flag': item['flag'], 'sploit': sploit_name, 'team': item['team']}
-#            for item in flags]
-#
-#    req = Request(urljoin(args.server_url, '/api/post_flags'))
-#    req.add_header('Content-Type', 'application/json')
-#    if args.token is not None:
-#        req.add_header('X-Token', args.token)
-#    with urlopen(req, data=json.dumps(data).encode(), timeout=SERVER_TIMEOUT) as conn:
-#        if conn.status != 200:
-#            raise Exception(conn.read())
-
-def once_in_a_period(period):
-    for iter_no in itertools.count(1):
-        start_time = time.time()
-        yield iter_no
-
-        time_spent = time.time() - start_time
-        if period > time_spent:
-            exit_event.wait(period - time_spent)
-        if exit_event.is_set():
-            break
-
-#def run_post_loop(args):
-#    try:
-#        for _ in once_in_a_period(POST_PERIOD):
-#            flags_to_post = flag_storage.pick_flags()
-#
-#            if flags_to_post:
-#                try:
-#                    post_flags(args, flags_to_post)
-#
-#                    flag_storage.mark_as_sent(len(flags_to_post))
-#                    logging.info('{} flags posted to the server ({} in the queue)'.format(
-#                        len(flags_to_post), flag_storage.queue_size))
-#                except Exception as e:
-#                    logging.error("Can't post flags to the server: {}".format(repr(e)))
-#                    logging.info("The flags will be posted next time")
-#    except Exception as e:
-#        logging.critical('Posting loop died: {}'.format(repr(e)))
-#        shutdown()
-
-
-def process_sploit_output(stream, args, team_name, flag_format, attack_no):
+def process_sploit_output(stream, team_name, flag_format):
     try:
         output_lines = []
         instance_flags = set()
@@ -174,23 +147,6 @@ def process_sploit_output(stream, args, team_name, flag_format, attack_no):
         logging.error('Failed to process sploit output: {}'.format(repr(e)))
 
 
-def launch_sploit(args, team_name, team_addr, attack_no, flag_format):
-    env = os.environ.copy()
-    env['PYTHONUNBUFFERED'] = '1'
-
-    command = [os.path.abspath(args.sploit)]
-    command.append(team_addr)
-
-    proc = subprocess.Popen(command,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            bufsize=1, close_fds=True, env=env)
-
-    threading.Thread(target=lambda: process_sploit_output(
-        proc.stdout, args, team_name, flag_format, attack_no)).start()
-
-    return proc, instance_storage.register_start(proc)
-
-
 def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
     try:
         with instance_lock:
@@ -198,6 +154,21 @@ def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
                 return
 
             proc, instance_id = launch_sploit(args, team_name, team_addr, attack_no, flag_format)
+
+            env = os.environ.copy()
+            env['PYTHONUNBUFFERED'] = '1'
+
+            command = [os.path.abspath(args.sploit)]
+            command.append(team_addr)
+
+            proc = subprocess.Popen(command,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    bufsize=1, close_fds=True, env=env)
+
+            threading.Thread(target=lambda: process_sploit_output(
+                proc.stdout, args, team_name, flag_format, attack_no)).start()
+
+            #return proc, instance_storage.register_start(proc)
     except Exception as e:
         return
 
@@ -216,13 +187,13 @@ def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
     except Exception as e:
         pass
 
-#def main(args):
-#    threading.Thread(target=lambda: run_post_loop(args)).start()
-#
-#    pool = ThreadPoolExecutor(max_workers=args.pool_size)
-#    for attack_no in once_in_a_period(args.attack_period):
-#        for team_name, team_addr in teams.items():
-#            pool.submit(run_sploit, args, team_name, team_addr, attack_no, max_runtime, flag_format)
+def main(args):
+    #threading.Thread(target=lambda: run_post_loop(args)).start()
+
+    pool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    for attack_no in once_in_a_period(args.attack_period):
+        for team_name, team_addr in teams.items():
+            pool.submit(run_sploit, args, team_name, team_addr, attack_no, max_runtime, flag_format)
 
 
 #def shutdown():

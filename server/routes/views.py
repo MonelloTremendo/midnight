@@ -16,9 +16,9 @@ def timestamp_to_datetime(s):
     return datetime.fromtimestamp(s)
 
 
-#@app.route('/')
+@app.route('/')
 #@auth.auth_required
-#def index():
+def index():
 #    distinct_values = {}
 #    for column in ['sploit', 'status', 'team']:
 #        rows = database.query('SELECT DISTINCT {} FROM flags ORDER BY {}'.format(column, column))
@@ -30,10 +30,7 @@ def timestamp_to_datetime(s):
 #    if server_tz_name.startswith('+'):
 #        server_tz_name = 'UTC' + server_tz_name
 #
-#    return render_template('index.html',
-#                           flag_format=config['FLAG_FORMAT'],
-#                           distinct_values=distinct_values,
-#                           server_tz_name=server_tz_name)
+    return render_template('index.html')
 #
 #
 #FORM_DATETIME_FORMAT = '%Y-%m-%d %H:%M'

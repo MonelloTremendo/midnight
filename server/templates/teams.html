@@ -7,146 +7,81 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>Teams</title>
 
-    <!-- ANIMATED BACKGROUND -->
-    <script type="module" src="/static/retrowave-scene-master/demo.js"></script>
-    <link rel="stylesheet" type="text/css" href="/static/retrowave-scene-master/demo.css" />
-    <!-- ANIMATED BACKGROUND -->
-
-    <link rel="stylesheet" href="/static/css/bootstrap-grid.css">
-    <link rel="stylesheet" href="/static/css/98.css">
-    <link rel="stylesheet" href="/static/css/98-style.css">
-
     <script src="/static/js/jquery-3.7.0.js"></script>
+
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
-    <div class="window d-flex h-100" style="flex-direction: column;">
-        <div class="title-bar">
-            <div class="title-bar-text">Midnight Project</div>
-            <div class="title-bar-controls">
-                <button aria-label="Minimize"></button>
-                <button aria-label="Maximize"></button>
-                <button aria-label="Close"></button>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled">Disabled</a>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="window-body d-flex h-100" style="flex-direction: column;">
-            <menu role="tablist" style="height: 30px;">
-                <li role="tab"><a href="#tabs">Dashboard</a></li>
-                <li role="tab" aria-selected="true"><a href="#">Teams</a></li>
-                <li role="tab"><a href="/exploits">Exploits</a></li>
-                <li role="tab"><a href="#tabs">Performance</a></li>
-            </menu>
+    </nav>
 
-            <div class="window h-100 d-flex" role="tabpanel" style="flex-direction: column;">
-                <div class="window-body h-100">
-                    <!-- ANIMATED BACKGROUND -->
-                    <div id="retrowaveSceneContainer" style="margin: 25px;"></div>
-                    <!-- ANIMATED BACKGROUND -->
-
-                    <div class="row" style="padding: 40px; height: calc(100% - 80px);">
-                        <div class="col-1"></div>
-                        <div class="col-5 h-100">
-                            <div class="row h-100">
-                                <div class="h-100" style="padding-right: 2rem;">
-                                    <div class="window h-100 d-flex" style="flex-direction: column;">
-                                        <div class="title-bar">
-                                            <div class="title-bar-text">
-                                                Teams
-                                            </div>
-                                            <div class="title-bar-controls">
-                                                <button aria-label="Minimize"></button>
-                                                <button aria-label="Maximize"></button>
-                                                <button aria-label="Close"></button>
-                                            </div>
-                                        </div>
-                                        <div class="window-body overflow-y h-100" style="overflow-y: auto;">
-                                            {% for team in teams %}
-                                            <div class="entry" id="{{ team.id }}">
-                                                <p class="team-text-pri">{{ team.name }}</p>
-                                                <p class="team-text-sec">{{ team.ip }}</p>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-5">
-                            <div class="row">
-                                <div class="pb-5" style="padding-left: 2rem;">
-                                    <div class="window">
-                                        <div class="title-bar">
-                                            <div class="title-bar-text">Team Edit</div>
-                                            <div class="title-bar-controls">
-                                                <button aria-label="Minimize"></button>
-                                                <button aria-label="Maximize"></button>
-                                                <button aria-label="Close"></button>
-                                            </div>
-                                        </div>
-                                        <div class="window-body">
-                                            <div class="field-row-stacked w-100">
-                                                <label for="name">Name</label>
-                                                <input id="name" type="text" />
-                                            </div>
-                                            <div class="field-row-stacked w-100">
-                                                <label for="ip">IP</label>
-                                                <input id="ip" type="text" />
-                                            </div>
-                                            <button class="d-block w-100 my-2 mt-4" id="teamAddBtn">Add</button>
-                                            <button disabled class="d-block w-100 my-2" id="teamEditBtn">Edit</button>
-                                            <button disabled class="d-block w-100" id="teamDeleteBtn">Delete</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--
-                            <div class="row">
-                                <div style="padding-left: 2rem;">
-                                    <div class="window">
-                                        <div class="title-bar">
-                                            <div class="title-bar-text">Bulk Insert</div>
-                                            <div class="title-bar-controls">
-                                                <button aria-label="Minimize"></button>
-                                                <button aria-label="Maximize"></button>
-                                                <button aria-label="Close"></button>
-                                            </div>
-                                        </div>
-                                        <div class="window-body">
-                                            <div>
-                                                <div class="field-row-stacked w-100">
-                                                    <label for="text20">Bulk Insert</label>
-                                                    <textarea id="text20" rows="16" style="resize: none;"
-                                                        id="bulkInsertText"></textarea>
-                                                    <button class="d-block w-100 my-2 mt-4" id="bulkInsertBtn">Insert</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            -->
-                        </div>
-                        <div class="col-1"></div>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-6">
+                <h3>Teams</h3>
+                <div class="list-group mt-4">
+                    {% for team in teams %}
+                    <a href="#" class="list-group-item list-group-item-action" aria-current="true" id="{{ team.id }}">
+                        <h5>{{ team.name }}</h5>
+                        <p class="text-end">{{ team.ip }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-6">
+                <h3>Team Edit</h3>
+                <div class="mt-4">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" placeholder="Team #1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ip" class="form-label">IP Address</label>
+                        <input type="text" class="form-control" id="ip" placeholder="10.60.0.1">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button id="teamAddBtn" type="button" class="btn btn-success">Add</button>
+                        <button id="teamEditBtn" type="button" disabled class="btn btn-warning">Edit</button>
+                        <button id="teamDeleteBtn" type="button" disabled class="btn btn-danger">Delete</button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="status-bar">
-            <p class="status-bar-field">Press F1 for help</p>
-            <p class="status-bar-field">Slide 1</p>
-            <p class="status-bar-field">CPU Usage: 14%</p>
-        </div>
     </div>
-
     <script>
         let selected = undefined;
 
-        $(".entry").each((i, el) => {
+        $(".list-group-item").each((i, el) => {
             $(el).click(async () => {
                 if (selected) {
-                    $(selected).removeClass("entry-active");
+                    $(selected).removeClass("active");
                 }
-                $(el).addClass("entry-active");
+                $(el).addClass("active");
                 selected = el;
                 await loadEdit($(el).prop("id"))
                 $("#teamEditBtn").removeAttr("disabled")

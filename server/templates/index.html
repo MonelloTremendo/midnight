@@ -1,150 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/static/favicon.ico">
+    <title>Index</title>
 
-    <title>Destructive Farm - Server</title>
+    <script src="/static/js/jquery-3.7.0.js"></script>
 
-    <link href="/static/css/bootswatch-flatly.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-0">
-    <img class="logo" src="/static/img/dvteam_white.png">
-    <div class="navbar-brand">Destructive Farm</div>
-</nav>
-
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card border-light">
-                <div class="card-body">
-                    <h4 class="card-title">Show Flags</h4>
-                    <form id="show-flags-form">
-                        <div class="row mb-2">
-                            <div class="col-md-4">
-                                <label for="sploit-select">Sploit</label>
-                                <select class="form-control form-control-sm" id="sploit-select" name="sploit">
-                                    <option value="">All</option>
-                                    {% for item in distinct_values['sploit'] %}
-                                    <option>{{ item }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="team-select">Team</label>
-                                <select class="form-control form-control-sm" id="team-select" name="team">
-                                    <option value="">All</option>
-                                    {% for item in distinct_values['team'] %}
-                                    <option>{{ item }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="flag-input">
-                                    Flag
-                                    <small class="text-muted ml-2">substring, case-insensitive</small>
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="flag-input" name="flag">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="time-since-input">
-                                    Since
-                                    <small class="text-muted ml-2">{{ server_tz_name }}</small>
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="time-since-input"
-                                       name="time-since"
-                                       placeholder="yyyy-mm-dd hh:mm">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="time-until-input">
-                                    Until
-                                    <small class="text-muted ml-2">{{ server_tz_name }}</small>
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="time-until-input"
-                                       name="time-until"
-                                       placeholder="yyyy-mm-dd hh:mm">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="status-select">Status</label>
-                                <select class="form-control form-control-sm" id="status-select" name="status">
-                                    <option value="">All</option>
-                                    {% for item in distinct_values['status'] %}
-                                    <option>{{ item }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="checksystem-response-input">
-                                    Checksystem response
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="checksystem-response-input"
-                                       name="checksystem_response">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary btn-sm submit-btn">Show</button>
-                            </div>
-                        </div>
-                        <input type="hidden" value="1" id="page-number" name="page-number">
-                    </form>
-                </div>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled">Disabled</a>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
 
-        <div class="col-lg-4">
-            <div class="card border-light">
-                <div class="card-body">
-                    <h4 class="card-title">Add Flags Manually</h4>
-                    <form id="post-flags-manual-form">
-                        <label for="text-with-flags">
-                            Text with flags
-                            <small class="text-muted ml-2">flag format: {{ flag_format }}</small>
-                        </label>
-                        <textarea class="form-control form-control-sm mb-3" id="text-with-flags" name="text"></textarea>
-                        <button type="submit" class="btn btn-primary btn-sm">Send</button>
-                    </form>
+    <div class="container mt-4">
+        <h3>Filters</h3>
+        <div class="mt-4">
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon1">@</span>
+                <input type="text" class="form-control" placeholder="Username" aria-label="Username"
+                    aria-describedby="basic-addon1">
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Recipient's username"
+                    aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <span class="input-group-text" id="basic-addon2">@example.com</span>
+            </div>
+
+            <div class="mb-3">
+                <label for="basic-url" class="form-label">Your vanity URL</label>
+                <div class="input-group">
+                    <span class="input-group-text" id="basic-addon3">https://example.com/users/</span>
+                    <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3 basic-addon4">
                 </div>
+                <div class="form-text" id="basic-addon4">Example help text goes outside the input group.</div>
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control" aria-label="Amount (to the nearest dollar)">
+                <span class="input-group-text">.00</span>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Username" aria-label="Username">
+                <span class="input-group-text">@</span>
+                <input type="text" class="form-control" placeholder="Server" aria-label="Server">
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-text">With textarea</span>
+                <textarea class="form-control" aria-label="With textarea"></textarea>
             </div>
         </div>
-    </div>
-
-    <div class="mb-3 text-center query-status"></div>
-
-    <div class="search-results" style="display: none;">
-        <p>Found <span class="total-count"></span> flags</p>
-
-        <ul class="pagination pagination-sm"></ul>
-
-        <table class="table table-hover">
+        <h3 class="mt-4">Flags</h3>
+        <table class="table table-hover mt-4">
             <thead>
-            <tr class="table-secondary">
-                <th scope="col">Sploit</th>
-                <th scope="col">Team</th>
-                <th scope="col">Flag</th>
-                <th scope="col">Time</th>
-                <th scope="col">Status</th>
-                <th scope="col">Checksystem Response</th>
-            </tr>
+                <th>Flag</th>
+                <th>Time</th>
+                <th>Exploit Name</th>
+                <th>Status</th>
+                <th>Checksystem response</th>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <tr>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>A</td>
+                </tr>
+            </tbody>
         </table>
-
-        <ul class="pagination pagination-sm"></ul>
     </div>
-</div>
-
-<script src="/static/js/jquery.min.js"></script>
-<script src="/static/js/ui.js"></script>
-
 </body>
+
 </html>
