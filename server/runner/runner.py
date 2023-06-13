@@ -39,7 +39,6 @@ class ExploitRunner:
 
         self.update_list()
 
-
     def update_list(self):
         result = database.query("SELECT * FROM exploits")
 
@@ -55,7 +54,35 @@ class ExploitRunner:
         for k, v in self.exploits.items():
             print(k, v)
 
+class Exploit:
+    def __init__(self, ) -> None:
+        self.lock = threading.RLock()
+#        self.process
 
+
+#                    env = os.environ.copy()
+#            env['PYTHONUNBUFFERED'] = '1'
+#
+#            command = [os.path.abspath(args.sploit)]
+#            command.append(team_addr)
+#
+#            proc = subprocess.Popen(command,
+#                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+#                                    bufsize=1, close_fds=True, env=env)
+#
+#            threading.Thread(target=lambda: process_sploit_output(
+#                proc.stdout, args, team_name, flag_format, attack_no)).start()
+
+    def flag_processor(self):
+        pass
+
+    def start(self):
+        pass
+
+    def kill(self):
+        with self.lock:
+            pass
+    pass
 
 class FlagStorage:
     """
