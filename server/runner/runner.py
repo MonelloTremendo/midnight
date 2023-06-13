@@ -5,11 +5,14 @@ import re
 import subprocess
 import time
 import threading
+import random
+import string
+import stat
 from concurrent.futures import ThreadPoolExecutor
 
 from server.database import database
-
-MAX_WORKERS = 16
+from server.database import models
+from server.config import config
 
 def singleton(class_):
     instances = {}
@@ -19,21 +22,9 @@ def singleton(class_):
         return instances[class_]
     return getinstance
 
-def once_in_a_period(period):
-    for iter_no in itertools.count(1):
-        start_time = time.time()
-        yield iter_no
-
-        time_spent = time.time() - start_time
-        if period > time_spent:
-            exit_event.wait(period - time_spent)
-        if exit_event.is_set():
-            break
-
 @singleton
 class ExploitRunner:
     def __init__(self) -> None:
-        self.pool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
         self.listLock = threading.RLock()
         self.exploits = {}
 
@@ -54,55 +45,18 @@ class ExploitRunner:
         for k, v in self.exploits.items():
             print(k, v)
 
-class Exploit:
-    def __init__(self, ) -> None:
-        self.lock = threading.RLock()
-#        self.process
-
-
-#                    env = os.environ.copy()
-#            env['PYTHONUNBUFFERED'] = '1'
-#
-#            command = [os.path.abspath(args.sploit)]
-#            command.append(team_addr)
-#
-#            proc = subprocess.Popen(command,
-#                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-#                                    bufsize=1, close_fds=True, env=env)
-#
-#            threading.Thread(target=lambda: process_sploit_output(
-#                proc.stdout, args, team_name, flag_format, attack_no)).start()
-
-    def flag_processor(self):
-        pass
-
-    def start(self):
-        pass
-
-    def kill(self):
-        with self.lock:
-            pass
-    pass
-
 class FlagStorage:
-    """
-    Thread-safe storage comprised of a set and a post queue.
-
-    Any number of threads may call add(), but only one "consumer thread"
-    may call pick_flags() and mark_as_sent().
-    """
-
     def __init__(self):
         self._flags_seen = set()
         self._queue = []
         self._lock = threading.RLock()
 
-    def add(self, flags, team_name):
+    def add(self, flags):
         with self._lock:
             for item in flags:
                 if item not in self._flags_seen:
                     self._flags_seen.add(item)
-                    self._queue.append({'flag': item, 'team': team_name})
+                    self._queue.append(item)
 
     def pick_flags(self):
         with self._lock:
@@ -117,125 +71,114 @@ class FlagStorage:
         with self._lock:
             return len(self._queue)
 
-class InstanceStorage:
-    """
-    Storage comprised of a dictionary of all running sploit instances and some statistics.
 
-    Always acquire instance_lock before using this class. Do not release the lock
-    between actual spawning/killing a process and calling register_start()/register_stop().
-    """
+class Exploit:
+    def __init__(self, id, threads, timeout, source, targets) -> None:
+        self.lock = threading.RLock()
+        self.exit_event = threading.Event()
+        self.pool = ThreadPoolExecutor(max_workers=threads)
+        self.running = False
+        self.id = id
+        self.timeout = timeout
+        self.targets = targets
 
-    def __init__(self):
-        self._counter = 0
+        self.instance_counter = 0
         self.instances = {}
 
-        self.n_completed = 0
-        self.n_killed = 0
+        filename = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        self.path = os.path.abspath(os.path.join(config.get_config()["EXPLOIT_PATH"], filename))
 
-    def register_start(self, process):
-        instance_id = self._counter
-        self.instances[instance_id] = process
-        self._counter += 1
-        return instance_id
+        with open(self.path, "w") as f:
+            f.write(source)
+        
+        file_mode = os.stat(self.path).st_mode
+        os.chmod(self.path, file_mode | stat.S_IXUSR)
 
-    def register_stop(self, instance_id, was_killed):
-        del self.instances[instance_id]
+    def once_in_a_period(self, period):
+        for iter_no in itertools.count(1):
+            start_time = time.time()
+            yield iter_no
 
-        self.n_completed += 1
-        self.n_killed += was_killed
-
-
-exit_event = threading.Event()
-
-flag_storage = FlagStorage()
-instance_storage = InstanceStorage()
-instance_lock = threading.RLock()
-
-POST_PERIOD = 5
-SERVER_TIMEOUT = 5
-
-def process_sploit_output(stream, team_name, flag_format):
-    try:
-        output_lines = []
-        instance_flags = set()
-
-        while True:
-            line = stream.readline()
-            if not line:
+            time_spent = time.time() - start_time
+            if period > time_spent:
+                self.exit_event.wait(period - time_spent)
+            if self.exit_event.is_set():
                 break
-            line = line.decode(errors='replace')
-            output_lines.append(line)
 
-            line_flags = set(flag_format.findall(line))
-            if line_flags:
-                flag_storage.add(line_flags, team_name)
-                instance_flags |= line_flags
-    except Exception as e:
-        logging.error('Failed to process sploit output: {}'.format(repr(e)))
+    def run(self):
+        for _ in self.once_in_a_period():
+            for item in self.targets.items():
+                self.pool.submit(self.start_exploit, item)
 
+    def stop(self):
+        self.exit_event.set()
 
-def run_sploit(args, team_name, team_addr, attack_no, timeout, flag_format):
-    try:
-        with instance_lock:
-            if exit_event.is_set():
+        with self.instance_lock:
+            for proc in self.instance_storage:
+                proc.kill()
+        pass
+
+    def flag_processor(self, stream, store):
+        format = config.get_config()["FLAG_FORMAT"]
+
+        try:
+            while True:
+                line = stream.readline()
+                if not line:
+                    break
+                line = line.decode(errors='replace')
+
+                line_flags = set(format.findall(line))
+                if line_flags:
+                    store |= line_flags
+
+        except Exception as e:
+            logging.error('Failed to process sploit output: {}'.format(repr(e)))
+
+    def start_exploit(self, target):
+        with self.instance_lock:
+            if self.exit_event.is_set():
                 return
 
-            proc, instance_id = launch_sploit(args, team_name, team_addr, attack_no, flag_format)
+        flag_storage = set()
+        env = os.environ.copy()
+        env['PYTHONUNBUFFERED'] = '1'
 
-            env = os.environ.copy()
-            env['PYTHONUNBUFFERED'] = '1'
+        command = [self.path]
+        command.append(target.ip)
 
-            command = [os.path.abspath(args.sploit)]
-            command.append(team_addr)
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, close_fds=True, env=env)
+        process_thread = threading.Thread(target=lambda: self.flag_processor(proc.stdout, flag_storage))
+        
+        with self.lock:
+            instance_id = self.instance_counter
+            self.instances[instance_id] = proc
 
-            proc = subprocess.Popen(command,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    bufsize=1, close_fds=True, env=env)
-
-            threading.Thread(target=lambda: process_sploit_output(
-                proc.stdout, args, team_name, flag_format, attack_no)).start()
-
-            #return proc, instance_storage.register_start(proc)
-    except Exception as e:
-        return
-
-    try:
         try:
-            proc.wait(timeout=timeout)
+            proc.wait(timeout=self.timeout)
             need_kill = False
         except subprocess.TimeoutExpired:
             need_kill = True
 
-        with instance_lock:
+        with self.lock:
             if need_kill:
                 proc.kill()
 
-            instance_storage.register_stop(instance_id, need_kill)
-    except Exception as e:
-        pass
+            del self.instances[instance_id]
 
-def main(args):
-    #threading.Thread(target=lambda: run_post_loop(args)).start()
+        process_thread.join()
+        exec_time = time.time_ns() // 1_000_000
 
-    pool = ThreadPoolExecutor(max_workers=MAX_WORKERS)
-    for attack_no in once_in_a_period(args.attack_period):
-        for team_name, team_addr in teams.items():
-            pool.submit(run_sploit, args, team_name, team_addr, attack_no, max_runtime, flag_format)
+        conn = database.get()
+        cursor = conn.cursor()
 
+        cursor.execute("INSERT INTO runs (exploit_id, team_id, time) VALUES (?, ?, ?)", (self.id, target.id, exec_time))
+        run_id = cursor.lastrowid
 
-#def shutdown():
-#    # Stop run_post_loop thread
-#    exit_event.set()
-#    # Kill all child processes (so consume_sploit_ouput and run_sploit also will stop)
-#    with instance_lock:
-#        for proc in instance_storage.instances.values():
-#            proc.kill()
+        rows = [(flag, run_id, models.FlagStatus.QUEUED, None) for flag in flag_storage]
+        cursor.executemany("INSERT INTO flags VALUES (?, ?, ?, ?)", rows)
 
+        conn.commit()
 
-#if __name__ == '__main__':
-#    try:
-#        main()
-#    except KeyboardInterrupt:
-#        logging.info('Got Ctrl+C, shutting down')
-#    finally:
-#        shutdown()
+    def __del__(self):
+        self.stop()

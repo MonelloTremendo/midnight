@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS runs (
     exploit_id INTEGER NOT NULL,
     team_id INTEGER NOT NULL,
     time INTEGER NOT NULL,
-    output TEXT,
     FOREIGN KEY(exploit_id) REFERENCES exploits(id) ON DELETE SET NULL,
     FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
