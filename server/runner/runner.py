@@ -27,6 +27,7 @@ class ExploitRunner:
     def __init__(self) -> None:
         self.listLock = threading.RLock()
         self.exploits = {}
+        self.instances = {}
 
         self.update_list()
 
@@ -34,42 +35,42 @@ class ExploitRunner:
         result = database.query("SELECT * FROM exploits")
 
         with self.listLock:
-            self.exploits = {item["id"] : {"name": item["name"], "threads": item["threads"], "timeout": item["timeout"], "source": item["source"], "running": item["running"] == 1} for item in result}
+            self.exploits = {item["id"] : {"name": item["name"], "threads": item["threads"], "timeout": item["timeout"], "source": item["source"], "running": int(item["running"]) == 1} for item in result}
 
-    def print_list(self):
-        self.update_list()
+            #to_delete = list(filter(lambda item: item not in self.exploits.keys(),self.instances.keys()))
 
-        print(self.exploits)
+            #for key in to_delete:
+            #    self.instances[key].stop()
+            #    del self.instances[key]
 
-    def execute_scripts(self):
-        for k, v in self.exploits.items():
-            print(k, v)
+            for k,v in self.exploits.items():
+                if v["running"]:
+                    try:
+                        if self.instances[k].source != v["source"]:
+                            self.instances[k].stop()
+                            del self.instances[k]
 
-class FlagStorage:
-    def __init__(self):
-        self._flags_seen = set()
-        self._queue = []
-        self._lock = threading.RLock()
+                            selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
+                            selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
 
-    def add(self, flags):
-        with self._lock:
-            for item in flags:
-                if item not in self._flags_seen:
-                    self._flags_seen.add(item)
-                    self._queue.append(item)
+                            self.instances[k] = Exploit(int(v["id"]), int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
+                            self.instances[k].run()
+                    except KeyError:
+                        selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
+                        selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
 
-    def pick_flags(self):
-        with self._lock:
-            return self._queue[:]
+                        self.instances[k] = Exploit(k, int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
+                        self.instances[k].run()
+                else:
+                    try:
+                        self.instances[k].stop()
+                        del self.instances[k]
+                    except KeyError:
+                        pass
 
-    def mark_as_sent(self, count):
-        with self._lock:
-            self._queue = self._queue[count:]
-
-    @property
-    def queue_size(self):
-        with self._lock:
-            return len(self._queue)
+    def delete_exploit(self, id):
+        self.instances[id].stop()
+        del self.instances[id]
 
 
 class Exploit:
@@ -77,10 +78,12 @@ class Exploit:
         self.lock = threading.RLock()
         self.exit_event = threading.Event()
         self.pool = ThreadPoolExecutor(max_workers=threads)
-        self.running = False
         self.id = id
         self.timeout = timeout
         self.targets = targets
+        self.source = source
+
+        self.period = 30
 
         self.instance_counter = 0
         self.instances = {}
@@ -106,25 +109,30 @@ class Exploit:
                 break
 
     def run(self):
-        for _ in self.once_in_a_period():
-            for item in self.targets.items():
+        threading.Thread(target=self.run_loop).start()
+
+    def run_loop(self):
+        for _ in self.once_in_a_period(self.period):
+            for item in self.targets:
+                with self.lock:
+                    if self.exit_event.is_set():
+                        return
                 self.pool.submit(self.start_exploit, item)
 
     def stop(self):
         self.exit_event.set()
 
-        with self.instance_lock:
-            for proc in self.instance_storage:
+        with self.lock:
+            for proc in self.instances:
                 proc.kill()
-        pass
 
     def flag_processor(self, stream, store):
-        format = config.get_config()["FLAG_FORMAT"]
+        format = re.compile(config.get_config()["FLAG_FORMAT"])
 
         try:
             while True:
                 line = stream.readline()
-                if not line:
+                if not line or self.exit_event.is_set():
                     break
                 line = line.decode(errors='replace')
 
@@ -136,7 +144,7 @@ class Exploit:
             logging.error('Failed to process sploit output: {}'.format(repr(e)))
 
     def start_exploit(self, target):
-        with self.instance_lock:
+        with self.lock:
             if self.exit_event.is_set():
                 return
 
@@ -145,14 +153,17 @@ class Exploit:
         env['PYTHONUNBUFFERED'] = '1'
 
         command = [self.path]
-        command.append(target.ip)
+        command.append(target["ip"])
 
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, close_fds=True, env=env)
         process_thread = threading.Thread(target=lambda: self.flag_processor(proc.stdout, flag_storage))
+        process_thread.start()
         
         with self.lock:
             instance_id = self.instance_counter
+            self.instance_counter += 1
             self.instances[instance_id] = proc
+            print(self.instances)
 
         try:
             proc.wait(timeout=self.timeout)
@@ -167,16 +178,21 @@ class Exploit:
             del self.instances[instance_id]
 
         process_thread.join()
-        exec_time = time.time_ns() // 1_000_000
+
+        with self.lock:
+            if self.exit_event.is_set():
+                return
+        
+        exec_time = int(time.time())
 
         conn = database.get()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True, buffered=True)
 
-        cursor.execute("INSERT INTO runs (exploit_id, team_id, time) VALUES (?, ?, ?)", (self.id, target.id, exec_time))
+        cursor.execute("INSERT INTO runs (exploit_id, team_id, time) VALUES (%s, %s, %s)", (self.id, target["id"], exec_time))
         run_id = cursor.lastrowid
 
-        rows = [(flag, run_id, models.FlagStatus.QUEUED, None) for flag in flag_storage]
-        cursor.executemany("INSERT INTO flags VALUES (?, ?, ?, ?)", rows)
+        rows = [(flag, run_id, models.FlagStatus.QUEUED.value, None) for flag in flag_storage]
+        cursor.executemany("INSERT IGNORE INTO flags VALUES (%s, %s, %s, %s)", rows)
 
         conn.commit()
 

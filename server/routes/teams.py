@@ -7,16 +7,15 @@ import server.database.database as database
 #@auth.auth_required
 def teams():
     teams = database.query("SELECT * FROM teams")
-    teams = [{"id": item["id"], "name": item["name"], "ip": item["ip"]} for item in teams]
 
-    print(teams)
+    teams = [{"id": item["id"], "name": item["name"], "ip": item["ip"]} for item in teams]
 
     return render_template('teams.html', teams=teams)
     
 @app.route('/teams/<int:uid>', methods=['GET'])
 #@auth.auth_required
 def teams_get(uid: int):
-    item = database.query("SELECT * FROM teams WHERE id = ?", (uid,))
+    item = database.query("SELECT * FROM teams WHERE id = %s", (uid,))
 
     if len(item) > 0:
         return jsonify({"id": item[0]["id"], "name": item[0]["name"], "ip": item[0]["ip"]}), 200
@@ -31,8 +30,8 @@ def teams_add():
 
     conn = database.get()
 
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO teams (name, ip) VALUES (?, ?)", (request.json["name"], request.json["ip"]))
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor.execute("INSERT INTO teams (name, ip) VALUES (%s, %s)", (request.json["name"], request.json["ip"]))
     conn.commit()
 
     return jsonify({"id": cursor.lastrowid}), 200
@@ -44,8 +43,8 @@ def teams_edit(uid: int):
 
     conn = database.get()
 
-    cursor = conn.cursor()
-    cursor.execute("UPDATE teams SET name = ?, ip = ? WHERE id = ?", (request.json["name"], request.json["ip"], uid))
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor.execute("UPDATE teams SET name = %s, ip = %s WHERE id = %s", (request.json["name"], request.json["ip"], uid))
     conn.commit()
 
     return jsonify({}), 204
@@ -54,8 +53,8 @@ def teams_edit(uid: int):
 def teams_delete(uid: int):
     conn = database.get()
 
-    cursor = conn.cursor()
-    cursor.execute("UPDATE teams SET deleted = 1 WHERE id = ?", (uid,))
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor.execute("UPDATE teams SET deleted = 1 WHERE id = %s", (uid,))
     conn.commit()
 
     return jsonify({}), 204
