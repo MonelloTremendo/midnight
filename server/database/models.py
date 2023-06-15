@@ -1,15 +1,49 @@
-from collections import namedtuple
-from enum import Enum
+from pydantic import BaseModel
+from datetime import date
 
-
-class FlagStatus(Enum):
+class FlagStatus(BaseModel):
     QUEUED = 0
     SKIPPED = 1
     ACCEPTED = 2
     REJECTED = 3
 
+class ExploitStatus(BaseModel):
+    STOPPED = 0
+    RUNNING = 1
 
-Flag = namedtuple('Flag', ['flag', 'sploit', 'team', 'time', 'status', 'checksystem_response'])
-SubmitResult = namedtuple('SubmitResult', ['flag', 'status', 'checksystem_response'])
+class Flag(BaseModel):
+    flag: str
+    run_id: int
+    status: FlagStatus
+    checksystem_response: str
 
-Exploit = namedtuple("Exploit", ["id", "name", "author", "threads", "timeout", "source"])
+    class Config:
+        orm_mode = True
+
+class Run(BaseModel):
+    id: int
+    exploit_id: int
+    team_id: int
+    time: date
+
+    class Config:
+        orm_mode = True
+
+class Exploit(BaseModel):
+    id: int
+    name: str
+    threads: int
+    timeout: int
+    running: ExploitStatus
+    source: str
+
+    class Config:
+        orm_mode = True
+
+class Team(BaseModel):
+    id: int
+    name: str
+    ip: str
+
+    class Config:
+        orm_mode = True

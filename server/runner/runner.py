@@ -67,6 +67,7 @@ class ExploitRunner:
                         del self.instances[k]
                     except KeyError:
                         pass
+            print(self.instances)
 
     def delete_exploit(self, id):
         self.instances[id].stop()
@@ -163,7 +164,7 @@ class Exploit:
             instance_id = self.instance_counter
             self.instance_counter += 1
             self.instances[instance_id] = proc
-            print(self.instances)
+            #print(self.instances)
 
         try:
             proc.wait(timeout=self.timeout)

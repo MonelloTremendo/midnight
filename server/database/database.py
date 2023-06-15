@@ -1,24 +1,10 @@
-"""
-Module with SQLite helpers, see http://flask.pocoo.org/docs/0.12/patterns/sqlite3/
-"""
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-import os
-from mysql.connector import connect
+SQLALCHEMY_DATABASE_URL = "mysql://root:midnight@localhost/midnight"
 
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-def get():
-    database = connect(
-        host="localhost",
-        user="root",
-        password="midnight",
-        database="midnight",
-    )
-    
-    return database
-
-def query(sql, args=()):
-    conn = get()
-
-    with conn.cursor(dictionary=True, buffered=True) as cursor:
-        cursor.execute(sql, args)
-        return cursor.fetchall()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
