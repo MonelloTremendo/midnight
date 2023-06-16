@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
+from typing import Optional
 
 class FlagStatus(BaseModel):
     QUEUED = 0
@@ -29,21 +30,25 @@ class Run(BaseModel):
     class Config:
         orm_mode = True
 
-class Exploit(BaseModel):
-    id: int
+class ExploitBase(BaseModel):
     name: str
     threads: int
     timeout: int
     running: ExploitStatus
     source: str
 
+class Exploit(ExploitBase):
+    id: int
+
     class Config:
         orm_mode = True
 
-class Team(BaseModel):
-    id: int
+class TeamBase(BaseModel):
     name: str
     ip: str
+
+class Team(TeamBase):
+    id: int
 
     class Config:
         orm_mode = True

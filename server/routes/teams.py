@@ -1,60 +1,46 @@
-from flask import jsonify, render_template, request
+from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
-from server import app
-import server.database.database as database
+from server.app import app
 
-@app.route('/teams', methods=['GET'])
-#@auth.auth_required
-def teams():
-    teams = database.query("SELECT * FROM teams")
+from server.database.connection import get_db
+from server.database.models import TeamBase, Team
 
-    teams = [{"id": item["id"], "name": item["name"], "ip": item["ip"]} for item in teams]
+@app.get("/teams")
+def get_teams(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT * FROM teams")).fetchall()
+    result = [Team.from_orm(team) for team in result]
 
-    return render_template('teams.html', teams=teams)
+    return result
     
-@app.route('/teams/<int:uid>', methods=['GET'])
-#@auth.auth_required
-def teams_get(uid: int):
-    item = database.query("SELECT * FROM teams WHERE id = %s", (uid,))
+@app.get("/teams/{team_id}")
+def get_team(team_id: int, db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT * FROM teams WHERE id = :team_id"), { "team_id": team_id }).fetchone()
 
-    if len(item) > 0:
-        return jsonify({"id": item[0]["id"], "name": item[0]["name"], "ip": item[0]["ip"]}), 200
-    else:
-        return jsonify({"message": "not found"}), 404
+    if not result:
+        raise HTTPException(404, "Not found")
+
+    return Team.from_orm(result)
 
 
-@app.route('/teams', methods=['POST'])
-def teams_add():
-    if request.json["name"] == "" or request.json["ip"] == "":
-        return jsonify({"message": "invalid data"}), 400
+@app.post("/teams")
+def add_team(team: TeamBase, db: Session = Depends(get_db)):
+    db.execute(text("INSERT INTO teams (name, ip) VALUES (:name, :ip)"), { "name" : team.name, "ip" : team.ip })
+    db.commit()
 
-    conn = database.get()
+    return team
 
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("INSERT INTO teams (name, ip) VALUES (%s, %s)", (request.json["name"], request.json["ip"]))
-    conn.commit()
+@app.patch("/teams/{team_id}")
+def edit_team(team_id: int, team: TeamBase, db: Session = Depends(get_db)):
+    db.execute(text("UPDATE teams SET name = :name, ip = :ip WHERE id = :id"), { "name" : team.name, "ip" : team.ip, "id" : team_id })
+    db.commit()
 
-    return jsonify({"id": cursor.lastrowid}), 200
+    return team
 
-@app.route('/teams/<int:uid>', methods=['PATCH'])
-def teams_edit(uid: int):
-    if request.json["name"] == "" or request.json["ip"] == "":
-        return jsonify({"message": "invalid data"}), 400
+@app.delete("/teams/{team_id}")
+def delete_team(team_id: int, db: Session = Depends(get_db)):
+    db.execute(text("DELETE FROM teams WHERE id = :id"), { "id" : team_id })
+    db.commit()
 
-    conn = database.get()
-
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("UPDATE teams SET name = %s, ip = %s WHERE id = %s", (request.json["name"], request.json["ip"], uid))
-    conn.commit()
-
-    return jsonify({}), 204
-
-@app.route('/teams/<int:uid>', methods=['DELETE'])
-def teams_delete(uid: int):
-    conn = database.get()
-
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("UPDATE teams SET deleted = 1 WHERE id = %s", (uid,))
-    conn.commit()
-
-    return jsonify({}), 204
+    return team_id
