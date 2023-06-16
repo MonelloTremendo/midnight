@@ -1,13 +1,15 @@
 from pydantic import BaseModel
+from enum import IntEnum
+from typing import List
 from datetime import date
 
-class FlagStatus(BaseModel):
+class FlagStatus(IntEnum):
     QUEUED = 0
     SKIPPED = 1
     ACCEPTED = 2
     REJECTED = 3
 
-class ExploitStatus(BaseModel):
+class ExploitStatus(IntEnum):
     STOPPED = 0
     RUNNING = 1
 
@@ -33,14 +35,17 @@ class ExploitBase(BaseModel):
     name: str
     threads: int
     timeout: int
-    running: ExploitStatus
     source: str
 
 class Exploit(ExploitBase):
     id: int
+    running: ExploitStatus
 
     class Config:
         orm_mode = True
+
+class ExploitTeams(BaseModel):
+    ids: List[int]
 
 class TeamBase(BaseModel):
     name: str

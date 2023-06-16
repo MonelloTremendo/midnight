@@ -10,71 +10,79 @@ import string
 import stat
 from concurrent.futures import ThreadPoolExecutor
 
-from server.database import database
-from server.database import models
-from server.config import config
+from fastapi import  Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-def singleton(class_):
-    instances = {}
-    def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
-    return getinstance
+from ..database.connection import get_db
+from ..database.models import Exploit, Team
 
-@singleton
+from ..config.config import get_config
+
+lock = threading.RLock()
+instances = {}
+
+def init():
+    pass
+
+def run_exploit(id: int):
+    conn = next(get_db())
+    exploit = conn.execute(text("SELECT * FROM exploits WHERE id = :exploit_id"), { "exploit_id" : id }).fetchone()
+    exploit = Exploit.from_orm(exploit)
+
+    teams = conn.execute(text("SELECT teams.id, teams.name, teams.ip FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = :exploit_id"), { "exploit_id" : id }).fetchall()
+    teams = [Team.from_orm(team) for team in teams]
+
+    print(exploit)
+    print(teams)
+
+def stop_exploit(id: int, db: Session = Depends(get_db)):
+    pass
+
+def update_exploit(id: int, db: Session = Depends(get_db)):
+    pass
+
+#def update_list(self):
+#    connection = next(get_db())
+#
+#    result = connection.execute("SELECT * FROM exploits")
+#
+#    with lock:
+#        exploits = {item["id"] : {"name": item["name"], "threads": item["threads"], "timeout": item["timeout"], "source": item["source"], "running": int(item["running"]) == 1} for item in result}
+#
+#        for k,v in exploits.items():
+#            if v["running"]:
+#                try:
+#                    if instances[k].source != v["source"]:
+#                        instances[k].stop()
+#                        del instances[k]
+#
+#                        selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
+#                        selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
+#
+#                        instances[k] = Exploit(int(v["id"]), int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
+#                        instances[k].run()
+#                except KeyError:
+#                    selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
+#                    selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
+#
+#                    instances[k] = Exploit(k, int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
+#                    instances[k].run()
+#            else:
+#                try:
+#                    instances[k].stop()
+#                    del instances[k]
+#                except KeyError:
+#                    pass
+#        print(instances)
+
+#def delete_exploit(self, id):
+#    self.instances[id].stop()
+#    del self.instances[id]
+    
+
+
 class ExploitRunner:
-    def __init__(self) -> None:
-        self.listLock = threading.RLock()
-        self.exploits = {}
-        self.instances = {}
-
-        self.update_list()
-
-    def update_list(self):
-        result = database.query("SELECT * FROM exploits")
-
-        with self.listLock:
-            self.exploits = {item["id"] : {"name": item["name"], "threads": item["threads"], "timeout": item["timeout"], "source": item["source"], "running": int(item["running"]) == 1} for item in result}
-
-            #to_delete = list(filter(lambda item: item not in self.exploits.keys(),self.instances.keys()))
-
-            #for key in to_delete:
-            #    self.instances[key].stop()
-            #    del self.instances[key]
-
-            for k,v in self.exploits.items():
-                if v["running"]:
-                    try:
-                        if self.instances[k].source != v["source"]:
-                            self.instances[k].stop()
-                            del self.instances[k]
-
-                            selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
-                            selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
-
-                            self.instances[k] = Exploit(int(v["id"]), int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
-                            self.instances[k].run()
-                    except KeyError:
-                        selectedTeams = database.query("SELECT * FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = %s", (k,))
-                        selectedTeams = [{"id": item["id"], "ip": item["ip"]} for item in selectedTeams]
-
-                        self.instances[k] = Exploit(k, int(v["threads"]), int(v["timeout"]), v["source"], selectedTeams)
-                        self.instances[k].run()
-                else:
-                    try:
-                        self.instances[k].stop()
-                        del self.instances[k]
-                    except KeyError:
-                        pass
-            print(self.instances)
-
-    def delete_exploit(self, id):
-        self.instances[id].stop()
-        del self.instances[id]
-
-
-class Exploit:
     def __init__(self, id, threads, timeout, source, targets) -> None:
         self.lock = threading.RLock()
         self.exit_event = threading.Event()
@@ -90,7 +98,7 @@ class Exploit:
         self.instances = {}
 
         filename = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
-        self.path = os.path.abspath(os.path.join(config.get_config()["EXPLOIT_PATH"], filename))
+        self.path = os.path.abspath(os.path.join(get_config()["EXPLOIT_PATH"], filename))
 
         with open(self.path, "w") as f:
             f.write(source)
@@ -128,7 +136,7 @@ class Exploit:
                 proc.kill()
 
     def flag_processor(self, stream, store):
-        format = re.compile(config.get_config()["FLAG_FORMAT"])
+        format = re.compile(get_config()["FLAG_FORMAT"])
 
         try:
             while True:
