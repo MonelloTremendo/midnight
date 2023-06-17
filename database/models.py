@@ -16,8 +16,8 @@ class ExploitStatus(IntEnum):
 class Flag(BaseModel):
     flag: str
     run_id: int
-    status: FlagStatus
-    checksystem_response: str
+    status: FlagStatus = FlagStatus.QUEUED
+    checksystem_response: str = ""
 
     class Config:
         orm_mode = True
@@ -26,7 +26,9 @@ class Run(BaseModel):
     id: int
     exploit_id: int
     team_id: int
-    time: date
+    start_time: date
+    end_time: date
+    exitcode: int
 
     class Config:
         orm_mode = True
@@ -35,11 +37,11 @@ class ExploitBase(BaseModel):
     name: str
     threads: int
     timeout: int
+    runperiod: int
     source: str
 
 class Exploit(ExploitBase):
     id: int
-    running: ExploitStatus
 
     class Config:
         orm_mode = True

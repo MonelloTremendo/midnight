@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from ..database.connection import get_db
-from ..runner.runner import run_exploit
+from database.connection import get_db
+from runner.runner import run_exploit
+
+from database.models import Flag
 
 router = APIRouter(
     prefix="/api",
@@ -18,8 +20,9 @@ def random(db: Session = Depends(get_db)):
 
     return {}
 
-@router.get("/test")
-def random(db: Session = Depends(get_db)):
-    run_exploit(1)
+@router.get("/flags")
+def get_flags(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT * FROM flags")).fetchall()
+    result = [Flag.from_orm(flag) for flag in result]
 
-    return {}
+    return result
