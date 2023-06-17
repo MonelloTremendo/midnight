@@ -5,9 +5,8 @@ from datetime import date
 
 class FlagStatus(IntEnum):
     QUEUED = 0
-    SKIPPED = 1
-    ACCEPTED = 2
-    REJECTED = 3
+    ACCEPTED = 1
+    REJECTED = 2
 
 class ExploitStatus(IntEnum):
     STOPPED = 0
@@ -58,3 +57,25 @@ class Team(TeamBase):
 
     class Config:
         orm_mode = True
+
+class FlagStatsAllTime(BaseModel):
+    total: int
+    queued: int
+    accepted: int
+    rejected: int
+
+    class Config:
+        orm_mode = True
+
+class FlagStatsPerTick(BaseModel):
+    total: int
+    queued: int
+    accepted: int
+    rejected: int
+    tick_start: int
+
+    class Config:
+        orm_mode = True
+
+class FlagStatsPerTickTeam(FlagStatsPerTick):
+    team: int

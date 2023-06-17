@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.api import router as api_router
 from routes.teams import router as teams_router
 from routes.exploits import router as expl_router
+from routes.stats import router as stats_router
 
 
 app = FastAPI()
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(teams_router)
 app.include_router(expl_router)
+app.include_router(stats_router)
 
 #import server.routes.api
 
