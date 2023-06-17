@@ -5,7 +5,7 @@ from sqlalchemy import text
 from typing import List
 
 from database.connection import get_db
-from database.models import FlagStatsAllTime, FlagStatsPerTick, FlagStatsPerTickTeam
+from database.models import FlagStats, FlagStatsPerTick, FlagStatsPerTickTeam
 
 router = APIRouter(
     prefix="/stats",
@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 @router.get("/flags/all")
-def get_flags_all(db: Session = Depends(get_db)) -> FlagStatsAllTime:
+def get_flags_all(db: Session = Depends(get_db)) -> FlagStats:
     query = """
         SELECT 
             COUNT(*) AS total,
@@ -26,7 +26,7 @@ def get_flags_all(db: Session = Depends(get_db)) -> FlagStatsAllTime:
     
     result = db.execute(text(query)).fetchone()
 
-    return FlagStatsAllTime.from_orm(result)
+    return FlagStats.from_orm(result)
 
 @router.get("/flags/tick")
 def get_flags_tick(db: Session = Depends(get_db)) -> List[FlagStatsPerTick]:
@@ -44,7 +44,7 @@ def get_flags_tick(db: Session = Depends(get_db)) -> List[FlagStatsPerTick]:
         """
     
     result = db.execute(text(query)).fetchall()
-    result = [FlagStatsPerTick.from_orm(flags) for flags in result]
+    result = [FlagStatsPerTick.from_orm(tick) for tick in result]
 
     return result
 
@@ -64,7 +64,7 @@ def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> List[Flag
         """
     
     result = db.execute(text(query), { "exploit_id": exploit_id }).fetchall()
-    result = [FlagStatsPerTick.from_orm(flags) for flags in result]
+    result = [FlagStatsPerTick.from_orm(tick) for tick in result]
 
     return result
 
@@ -87,6 +87,6 @@ def get_flags_script_team(exploit_id:int, db: Session = Depends(get_db)) -> List
     
     result = db.execute(text(query), { "exploit_id": exploit_id }).fetchall()
     print(result)
-    result = [FlagStatsPerTickTeam.from_orm(flags) for flags in result]
+    result = [FlagStatsPerTickTeam.from_orm(tick) for tick in result]
 
     return result

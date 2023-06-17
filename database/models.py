@@ -58,7 +58,7 @@ class Team(TeamBase):
     class Config:
         orm_mode = True
 
-class FlagStatsAllTime(BaseModel):
+class FlagStats(BaseModel):
     total: int
     queued: int
     accepted: int
@@ -67,15 +67,8 @@ class FlagStatsAllTime(BaseModel):
     class Config:
         orm_mode = True
 
-class FlagStatsPerTick(BaseModel):
-    total: int
-    queued: int
-    accepted: int
-    rejected: int
+class FlagStatsPerTick(FlagStats):
     tick_start: int
-
-    class Config:
-        orm_mode = True
 
 class FlagStatsPerTickTeam(FlagStatsPerTick):
     team: int
