@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:midnight@127.0.0.1/midnight"
+SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:midnight@database/midnight"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
