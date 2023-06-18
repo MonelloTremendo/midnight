@@ -60,7 +60,8 @@ def update_exploit(id: int):
         run_exploit(id)
 
 def is_running(id: int):
-    return id in instances
+    with lock:
+        return id in instances
 
 
 class ExploitRunner:
@@ -111,7 +112,7 @@ class ExploitRunner:
 
         with self.lock:
             for proc in self.instances:
-                proc.kill()
+                self.instances[proc].kill()
 
     def flag_processor(self, stream, store):
         format = re.compile(get_config()["FLAG_FORMAT"])

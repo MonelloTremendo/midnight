@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "prismjs": "^1.29.0",
+    "vue-prismjs": "^1.2.0"
+  },
+  "devDependencies": {
+    "vue-prism": "^1.0.5"
+  }
+}

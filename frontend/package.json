@@ -7,6 +7,7 @@
         "build": "vue-cli-service build"
     },
     "dependencies": {
+        "@babel/runtime": "^7.22.5",
         "bootstrap": "^5.3.0",
         "bootstrap-icons": "^1.10.5",
         "chart.js": "^4.3.0",
@@ -17,6 +18,7 @@
         "vue": "^3.2.13",
         "vue-chartjs": "^5.2.0",
         "vue-google-charts": "^1.1.0",
+        "vue-prismjs": "^1.2.0",
         "vue-router": "^4.0.3"
     },
     "devDependencies": {

@@ -1,7 +1,7 @@
 <template>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid px-3">
-            <a class="navbar-brand d-flex flex-row-reverse" href="#">
+            <a class="navbar-brand d-flex flex-row-reverse" href="/">
                 <img :src="logo_svg" class="d-inline-block mx-2" alt="" height="32">
                 Midnight
             </a>
@@ -10,9 +10,8 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
+                <router-link to="/" class="nav-link">Dashboard</router-link>
                 <router-link to="/exploits" class="nav-link">Exploits</router-link>
-                <router-link to="/plots" class="nav-link">Plots</router-link>
-                <router-link to="/settings" class="nav-link">Settings</router-link>
             </div>
             </div>
         </div>

@@ -1,5 +1,18 @@
-<script setup>
-import NavBar from './components/NavBar.vue'
+<script>
+import NavBar from './components/NavBar.vue';
+import settings_json from './settings.json';
+
+export default {
+    name: 'App',
+    components: { NavBar },
+    data(){
+        return {
+        }
+    },
+    mounted() {
+
+    }
+}
 </script>
 
 <template>
