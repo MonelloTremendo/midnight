@@ -43,10 +43,12 @@ CREATE TABLE IF NOT EXISTS flags (
     FOREIGN KEY(run_id) REFERENCES runs(id)    
 );
 
--- CREATE INDEX IF NOT EXISTS flags_sploit ON flags(sploit);
--- CREATE INDEX IF NOT EXISTS flags_team ON flags(team);
--- CREATE INDEX IF NOT EXISTS flags_status_time ON flags(status, time);
--- CREATE INDEX IF NOT EXISTS flags_time ON flags(time);
+
+CREATE INDEX flags_status ON flags(status);
+CREATE INDEX flags_run ON flags(run_id);
+
+CREATE INDEX runs_end_time ON runs(end_time);
+
 
 INSERT INTO `teams` VALUES (1,'test','10.60.69.1');
 INSERT INTO `exploits` VALUES (1,'testExploit',16,60,10,'IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwoKaW1wb3J0IHJhbmRvbQppbXBvcnQgc3RyaW5nCgpmb3IgXyBpbiByYW5nZSgxMCk6CiAgICBwcmludCgiIi5qb2luKHJhbmRvbS5jaG9pY2Uoc3RyaW5nLmFzY2lpX3VwcGVyY2FzZSkgZm9yIF8gaW4gcmFuZ2UoMzEpKSArICI9IiwgZmx1c2g9VHJ1ZSk=');

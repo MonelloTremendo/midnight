@@ -34,9 +34,6 @@ def run_exploit(id: int):
     teams = conn.execute(text("SELECT teams.id, teams.name, teams.ip FROM exploit_teams INNER JOIN teams ON exploit_teams.team_id = teams.id WHERE exploit_teams.exploit_id = :exploit_id"), { "exploit_id" : id }).fetchall()
     teams = [Team.from_orm(team) for team in teams]
 
-    print(exploit)
-    print(teams)
-
     with lock:
         if id not in instances:
             instances[id] = ExploitRunner(exploit, teams)
@@ -152,7 +149,6 @@ class ExploitRunner:
             instance_id = self.instance_counter
             self.instance_counter += 1
             self.instances[instance_id] = proc
-            #print(self.instances)
 
         try:
             proc.wait(timeout=self.exploit.timeout)

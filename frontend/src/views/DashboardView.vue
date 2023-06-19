@@ -15,14 +15,11 @@
                 </div>
             </div>
         </div>
-        <Prism />
     </div>
 </template>
 
 <script>
 'use strict';
-
-import Prism from "@/components/Prism.vue";
 
 import * as _ from "lodash";
 import { api, colors } from '../utils.js'
@@ -33,7 +30,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, A
 
 export default {
     name: 'Dashboard',
-    components: { Line, Pie, Prism },
+    components: { Line, Pie },
     data() {
         return {
             flagsTick: undefined,

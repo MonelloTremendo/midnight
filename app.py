@@ -1,17 +1,13 @@
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-#from server.runner.runner import ExploitRunner
-
-#ExploitRunner().update_list()
-
+from routes.websocket import router as ws_router
 from routes.api import router as api_router
 from routes.teams import router as teams_router
 from routes.exploits import router as expl_router
 from routes.stats import router as stats_router
-
 
 app = FastAPI()
 
@@ -27,8 +23,7 @@ app.include_router(api_router)
 app.include_router(teams_router)
 app.include_router(expl_router)
 app.include_router(stats_router)
-
-#import server.routes.api
+app.include_router(ws_router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

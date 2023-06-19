@@ -1,11 +1,14 @@
 version: "3.8"
 
 services:
+
   database:
     build: ./mysql
+    ports:
+      - 3306:3306
 
   api:
-    build: 
+    build:
       context: .
       dockerfile: ./docker/Dockerfile
     ports:
