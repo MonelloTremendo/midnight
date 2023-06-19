@@ -1,30 +1,30 @@
-import settings_json from './settings.json';
+import settings from './settings.js';
 
 const api = {
     async get(endpoint = '/') {
-        return await fetch(settings_json.ip + endpoint, {
+        return await fetch(settings.api_url + endpoint, {
             method: 'GET',
         });
     },
     async put(endpoint = '/') {
-        return await fetch(settings_json.ip + endpoint, {
+        return await fetch(settings.api_url + endpoint, {
             method: 'PUT',
         });
     },
     async delete(endpoint = '/') {
-        return await fetch(settings_json.ip + endpoint, {
+        return await fetch(settings.api_url + endpoint, {
             method: 'DELETE',
         });
     },
     async post(endpoint = '/', params = {}) {
-        return await fetch(settings_json.ip + endpoint, {
+        return await fetch(settings.api_url + endpoint, {
             method: 'POST',
             body: JSON.stringify(params),
             headers: { 'content-type': 'application/json' },
         });
     },
     async patch(endpoint = '/', params = {}) {
-        return await fetch(settings_json.ip + endpoint, {
+        return await fetch(settings.api_url + endpoint, {
             method: 'PATCH',
             body: JSON.stringify(params),
             headers: { 'content-type': 'application/json' },

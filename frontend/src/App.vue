@@ -1,6 +1,5 @@
 <script>
 import NavBar from './components/NavBar.vue';
-import settings_json from './settings.json';
 
 export default {
     name: 'App',
