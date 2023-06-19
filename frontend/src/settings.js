@@ -1,5 +1,5 @@
-import default_py from "raw-loader!@/assets/code_templates/default.py";
-import randomFlags_py from "raw-loader!@/assets/code_templates/random_flags.py";
+import default_py from "@/assets/code_templates/default.py";
+import randomFlags_py from "@/assets/code_templates/random_flags.py";
 
 export default {
     api_url: "http://100.125.5.92:8000",
