@@ -54,3 +54,12 @@ SELECT
 FROM runs INNER JOIN flags ON runs.id = flags.run_id
 WHERE runs.exploit_id = ?
 GROUP BY tick_start;
+
+SELECT
+    exploits.name,
+    COUNT(*) AS total,
+    SUM(status=0) AS queued,
+    SUM(status=1) AS accepted,
+    SUM(status=2) AS rejected
+FROM (runs INNER JOIN flags ON runs.id = flags.run_id) INNER JOIN exploits ON runs.exploit_id = exploits.id
+GROUP BY runs.exploit_id, exploits.name;

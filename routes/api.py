@@ -17,9 +17,9 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.get("/random")
+@router.get("/init")
 def random(db: Session = Depends(get_db)):
-    #result = db.execute(text("INSERT INTO teams (name, ip) VALUE ('test', 'lmao')"))
+    db.execute(text("DELETE FROM teams"))
     #db.commit()
     a = [
     "0, TEAM_NOP",
@@ -73,7 +73,7 @@ def random(db: Session = Depends(get_db)):
         ip = f"10.60.{split[0]}.1"
         db.execute(text("INSERT INTO teams (name, ip) VALUE (:name, :ip)"), { "name": split[1], "ip": ip})
 
-    #db.commit()
+    db.commit()
 
     return {}
 

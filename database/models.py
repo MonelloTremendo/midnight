@@ -72,3 +72,6 @@ class FlagStatsPerTick(FlagStats):
 
 class FlagStatsPerTickTeam(FlagStatsPerTick):
     team: int
+
+class FlagStatsTeam(FlagStats):
+    name: str

@@ -5,7 +5,7 @@ from sqlalchemy import text
 from typing import List
 
 from database.connection import get_db
-from database.models import FlagStats, FlagStatsPerTick, FlagStatsPerTickTeam
+from database.models import FlagStats, FlagStatsPerTick, FlagStatsPerTickTeam, FlagStatsTeam
 
 router = APIRouter(
     prefix="/stats",
@@ -82,11 +82,29 @@ def get_flags_script_team(exploit_id:int, db: Session = Depends(get_db)) -> List
         WHERE runs.exploit_id = :exploit_id
         GROUP BY tick_start, runs.team_id
         ORDER BY tick_start DESC
-        LIMIT 1
+        LIMIT 1, 1
         """
     
     result = db.execute(text(query), { "exploit_id": exploit_id }).fetchall()
-    print(result)
     result = [FlagStatsPerTickTeam.from_orm(tick) for tick in result]
+
+    return result
+
+
+@router.get("/flags/scripts/all")
+def get_flags_tick(db: Session = Depends(get_db)) -> List[FlagStatsTeam]:
+    query = """
+        SELECT
+            exploits.name,
+            COUNT(*) AS total,
+            SUM(status=0) AS queued,
+            SUM(status=1) AS accepted,
+            SUM(status=2) AS rejected
+        FROM (runs INNER JOIN flags ON runs.id = flags.run_id) INNER JOIN exploits ON runs.exploit_id = exploits.id
+        GROUP BY runs.exploit_id, exploits.name;
+        """
+    
+    result = db.execute(text(query)).fetchall()
+    result = [FlagStatsTeam.from_orm(tick) for tick in result]
 
     return result

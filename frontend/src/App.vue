@@ -1,25 +1,34 @@
 <script>
-import NavBar from './components/NavBar.vue';
+import NavBar from "./components/NavBar.vue";
+import { RouterView } from "vue-router";
 
 export default {
-    name: 'App',
-    components: { NavBar },
-    data(){
-        return {
-        }
-    },
-    mounted() {
-
-    }
-}
+  name: "App",
+  components: { NavBar, RouterView },
+  data() {
+    return {};
+  },
+  mounted() {},
+};
 </script>
 
 <template>
-  <NavBar/>
-  <router-view/>
+  <div class="d-flex" style="flex-direction: column; height: 100vh;">
+    <NavBar />
+    <RouterView style="margin-top: 1.5rem; margin-bottom: 3rem; flex: 0 1 auto;" />
+  </div>
 </template>
 
 <style>
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .scroll, * {
     scrollbar-color: var(--scroll-thumb-color, grey) var(--scroll-track, transparent);
     scrollbar-width: thin;
@@ -38,9 +47,10 @@ export default {
     border-radius: var(--scroll-thumb-radius, var(--scroll-radius));
 }
 * {
-    --scroll-size: 5px;
+    --scroll-size: 7px;
     --scroll-radius: 10px;
     --scroll-track: rgb(255 255 255 / 10%);
     --scroll-thumb-color: #9c9c9c;
 }
+
 </style>
