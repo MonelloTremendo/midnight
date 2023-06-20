@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:midnight@127.0.0.1/midnight"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

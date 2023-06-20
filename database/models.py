@@ -20,6 +20,7 @@ class Flag(BaseModel):
 
     class Config:
         orm_mode = True
+        use_enum_values = True
 
 class Run(BaseModel):
     id: int
@@ -59,19 +60,27 @@ class Team(TeamBase):
         orm_mode = True
 
 class FlagStats(BaseModel):
-    total: int
-    queued: int
-    accepted: int
-    rejected: int
+    total: int = 0
+    queued: int = 0
+    accepted: int = 0
+    rejected: int = 0
 
     class Config:
         orm_mode = True
 
 class FlagStatsPerTick(FlagStats):
-    tick_start: int
+    tick_start: int = 0
 
 class FlagStatsPerTickTeam(FlagStatsPerTick):
     team: int
 
 class FlagStatsTeam(FlagStats):
+    id: int
     name: str
+
+class FlagsExploitTimestamp(BaseModel):
+    id: int
+    flags: int
+
+    class Config:
+        orm_mode = True

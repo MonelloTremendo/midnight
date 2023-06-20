@@ -1,46 +1,32 @@
 <template>
-  <div
-    class="container d-flex flex-column"
-    style="height: calc(100vh - 58px - 4.5rem)"
-  >
-    <div class="d-flex flex-column" style="flex: 1; min-height: 100%">
-      <h1>Dashboard</h1>
-      <div class="row mt-4" style="flex: 1">
-        <div class="col-8 d-flex flex-column">
-          <h4 class="text-center">Flags retrieved</h4>
-          <div class="mt-3 flex-fill">
-            <Line
-              v-if="flagsTick"
-              :data="flagsTick"
-              :options="flagsTickOptions"
-            />
-          </div>
+    <div class="container d-flex flex-column" style="height: calc(100vh - 58px - 4.5rem)">
+        <div class="d-flex flex-column" style="flex: 1; min-height: 100%">
+            <h1>Dashboard</h1>
+            <div class="row mt-4" style="flex: 1">
+                <div class="col-8 d-flex flex-column">
+                    <h4 class="text-center">Flags retrieved</h4>
+                    <div class="mt-3 flex-fill">
+                        <Line v-if="flagsTick" :data="flagsTick" :options="flagsTickOptions" />
+                    </div>
+                </div>
+                <div class="col-4 d-flex flex-column">
+                    <h4 class="text-center">Submit stats</h4>
+                    <div class="mt-3 flex-fill">
+                        <Pie v-if="flagsAccepted" :data="flagsAccepted" :options="flagsAcceptedOptions" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4" style="flex: 1">
+                <div class="col-12 d-flex flex-column">
+                    <h4 class="text-center">Flags retrieved by exploit</h4>
+                    <div class="mt-3 flex-fill">
+                        <Bar v-if="flagsAcceptedPerExploit" :data="flagsAcceptedPerExploit"
+                            :options="flagsAcceptedPerExploitOptions" />
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-4 d-flex flex-column">
-          <h4 class="text-center">Submit stats</h4>
-          <div class="mt-3 flex-fill">
-            <Pie
-              v-if="flagsAccepted"
-              :data="flagsAccepted"
-              :options="flagsAcceptedOptions"
-            />
-          </div>
-        </div>
-      </div>
-      <div class="row mt-4" style="flex: 1">
-        <div class="col-12 d-flex flex-column">
-          <h4 class="text-center">Flags retrieved by exploit</h4>
-          <div class="mt-3 flex-fill">
-            <Pie
-              v-if="flagsAcceptedPerExploit"
-              :data="flagsAcceptedPerExploit"
-              :options="flagsAcceptedPerExploitOptions"
-            />
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -49,131 +35,181 @@
 import * as _ from "lodash";
 import { api, colors } from "../utils.js";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    BarElement,
 } from "chart.js";
-import { Line, Pie } from "vue-chartjs";
+import { Line, Pie, Bar } from "vue-chartjs";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  ArcElement,
-  Tooltip,
-  Legend
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    ArcElement,
+    BarElement,
+    Tooltip,
+    Legend
 );
 
 export default {
-  name: "Dashboard",
-  components: { Line, Pie },
-  data() {
-    return {
-      flagsTick: undefined,
-      flagsAccepted: undefined,
-      flagsAcceptedPerExploit: undefined,
-      flagsTickOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            grid: { color: "#3f3f3f", borderColor: "#8b8b8b" },
-          },
-          y: {
-            grid: { color: "#3f3f3f", borderColor: "#8b8b8b" },
-          },
+    name: "Dashboard",
+    components: { Line, Pie, Bar },
+    data() {
+        return {
+            timer: undefined,
+            flagsTick: undefined,
+            flagsAccepted: undefined,
+            flagsAcceptedPerExploit: undefined,
+            flagsTickOptions: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: "#3f3f3f", borderColor: "#8b8b8b" },
+                    },
+                    y: {
+                        grid: { color: "#3f3f3f", borderColor: "#8b8b8b" },
+                    },
+                },
+            },
+            flagsAcceptedOptions: {
+                responsive: true,
+                maintainAspectRatio: false,
+            },
+            flagsAcceptedPerExploitOptions: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                    },
+                },
+            },
+        };
+    },
+    methods: {
+        // DONT TOUCH PLEASE
+        async getFlagsTick() {
+            let res = await api.get("/stats/flags/tick");
+            res = await res.json();
+
+            const stamp_now = Date.now() / 1000;
+            const tick_now = stamp_now - (stamp_now % 120);
+            console.log(tick_now);
+
+            let out = [];
+
+            for (let i = 0; i < 15; i++) {
+                let tick = tick_now - 120 * i;
+                let found = res.find((el, i) => el.tick_start === tick)
+
+                if (found) {
+                    out[i] = found
+                } else {
+                    out[i] = {
+                        "total": 0,
+                        "queued": 0,
+                        "accepted": 0,
+                        "rejected": 0,
+                        "tick_start": tick
+                    }
+                }
+            }
+
+            let labels = out.reverse().map((el) => {
+                return new Date(new Date(el.tick_start * 1000).toUTCString())
+                    .toLocaleString()
+                    .split(", ")[1]
+                    .slice(0, -3);
+            });
+
+            this.flagsTick = {
+                labels,
+                datasets: [
+                    {
+                        label: "Flags",
+                        data: out.map(item => item.total),
+                        fill: true,
+                        backgroundColor: "#6f42c1",
+                        borderColor: "#6f42c1",
+                    },
+                ],
+            };
         },
-      },
-      flagsAcceptedOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-      flagsAcceptedPerExploitOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    };
-  },
-  methods: {
-    async getFlagsTick() {
-      let res = await api.get("/stats/flags/tick");
-      res = await res.json();
+        async getFlagsAccepted() {
+            let res = await api.get("/stats/flags/all");
+            res = await res.json();
 
-      res = _.reverse(res);
-      console.log(res);
+            this.flagsAccepted = {
+                labels: ["Queued", "Accepted", "Rejected"],
+                datasets: [
+                    {
+                        data: [res.queued, res.accepted, res.rejected],
+                        backgroundColor: colors.green1,
+                        backgroundColor: ["#a7acb1", "#198754", "#dc3545"],
+                    },
+                ],
+            };
+        },
+        async getFlagsAcceptedPerExploit() {
+            let res = await api.get("/stats/flags/scripts/all");
+            res = await res.json();
 
-      this.flagsTick = {
-        labels: res.map((el) => {
-          return new Date(new Date(el.tick_start * 1000).toUTCString())
-            .toLocaleString()
-            .split(", ")[1]
-            .slice(0, -3);
-        }),
-        datasets: [
-          {
-            label: "Flags",
-            data: res.map((el) => el.total),
-            fill: true,
-            backgroundColor: "#6f42c1",
-            borderColor: "#6f42c1",
-          },
-        ],
-      };
+            let data = [
+                {
+                    label: "Accepted",
+                    data: res.map((item) => (item.accepted / item.total) * 100),
+                    backgroundColor: "#198754",
+                    stack: 0,
+                },
+                {
+                    label: "Rejected",
+                    data: res.map((item) => (item.rejected / item.total) * 100),
+                    backgroundColor: "#dc3545",
+                    stack: 0,
+                },
+                {
+                    label: "Queued",
+                    data: res.map((item) => (item.queued / item.total) * 100),
+                    backgroundColor: "#a7acb1",
+                    stack: 0,
+                },
+            ];
+
+            this.flagsAcceptedPerExploit = {
+                labels: res.map((item) => item.name),
+                datasets: data,
+            };
+        },
     },
-    async getFlagsAccepted() {
-      let res = await api.get("/stats/flags/all");
-      res = await res.json();
-      console.log(res);
+    async mounted() {
+        await this.getFlagsTick();
+        await this.getFlagsAccepted();
+        await this.getFlagsAcceptedPerExploit();
 
-      this.flagsAccepted = {
-        labels: ["Queued", "Accepted", "Rejected"],
-        datasets: [
-          {
-            data: [res.queued, res.accepted, res.rejected],
-            backgroundColor: colors.green1,
-            backgroundColor: ["#adb5bd", "#198754", "#dc3545"],
-          },
-        ],
-      };
+        this.timer = setInterval(async () => {
+            await this.getFlagsTick();
+            await this.getFlagsAccepted();
+            await this.getFlagsAcceptedPerExploit();
+        }, 30 * 1000);
     },
-    async getFlagsAcceptedPerExploit() {
-      let res = await api.get("/stats/flags/scripts/all");
-      res = await res.json();
-      console.log(res);
-
-      this.flagsAcceptedPerExploit = {
-        labels: [res.map((item) => item.name)],
-        datasets: [
-          {
-            label: "Data One",
-            backgroundColor: "#f87979",
-            data: [
-              _.flatten(res.map((item) => {
-                return {
-                  label: "Dataset 2",
-                  data: 0,
-                  backgroundColor: "#f87979",
-                  stack: "Stack 0",
-                };
-              })),
-            ],
-          },
-        ],
-      };
+    async unmounted() {
+        clearInterval(this.timer);
     },
-  },
-  async mounted() {
-    await this.getFlagsTick();
-    await this.getFlagsAccepted();
-    await this.getFlagsAcceptedPerExploit();
-  },
 };
 </script>

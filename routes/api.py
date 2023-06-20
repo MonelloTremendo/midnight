@@ -86,6 +86,8 @@ def get_flags(db: Session = Depends(get_db)):
 
 @router.get("/test")
 def get_test(db: Session = Depends(get_db)):
-    asyncio.run(manager.broadcast("lmao"))
+    import string, random
+
+    print(Flag(flag="".join(random.choice(string.ascii_uppercase) for _ in range(31)) + "=", run_id=1, status=1).dict())
 
     return {}
