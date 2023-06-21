@@ -3,7 +3,7 @@
         <div class="container-fluid px-3">
             <a class="navbar-brand d-flex flex-row-reverse" href="/">
                 <img :src="logo_svg" class="d-inline-block mx-2" alt="" height="32">
-                Midnight
+                Mezzanotte
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

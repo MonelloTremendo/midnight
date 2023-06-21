@@ -2,33 +2,53 @@ import settings from './settings.js';
 
 const api = {
     async get(endpoint = '/') {
-        return await fetch(settings.api_url + endpoint, {
-            method: 'GET',
-        });
+        try {
+            return await fetch(settings.api_url + endpoint, {
+                method: 'GET',
+            });
+        } catch (exception) {
+            console.log(exception);
+        }
     },
     async put(endpoint = '/') {
-        return await fetch(settings.api_url + endpoint, {
-            method: 'PUT',
-        });
+        try {
+            return await fetch(settings.api_url + endpoint, {
+                method: 'PUT',
+            });
+        } catch (exception) {
+            console.log(exception);
+        }
     },
     async delete(endpoint = '/') {
-        return await fetch(settings.api_url + endpoint, {
-            method: 'DELETE',
-        });
+        try {
+            return await fetch(settings.api_url + endpoint, {
+                method: 'DELETE',
+            });
+        } catch (exception) {
+            console.log(exception);
+        }
     },
     async post(endpoint = '/', params = {}) {
-        return await fetch(settings.api_url + endpoint, {
-            method: 'POST',
-            body: JSON.stringify(params),
-            headers: { 'content-type': 'application/json' },
-        });
+        try {
+            return await fetch(settings.api_url + endpoint, {
+                method: 'POST',
+                body: JSON.stringify(params),
+                headers: { 'content-type': 'application/json' },
+            });
+        } catch (exception) {
+            console.log(exception);
+        }
     },
     async patch(endpoint = '/', params = {}) {
-        return await fetch(settings.api_url + endpoint, {
-            method: 'PATCH',
-            body: JSON.stringify(params),
-            headers: { 'content-type': 'application/json' },
-        });
+        try {
+            return await fetch(settings.api_url + endpoint, {
+                method: 'PATCH',
+                body: JSON.stringify(params),
+                headers: { 'content-type': 'application/json' },
+            });
+        } catch (exception) {
+            console.log(exception);
+        }
     },
 };
 

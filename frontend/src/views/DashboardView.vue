@@ -105,9 +105,14 @@ export default {
     methods: {
         // DONT TOUCH PLEASE
         async getFlagsTick() {
-            let res = await api.get("/stats/flags/tick");
-            res = await res.json();
-
+            let res = [];
+            try {
+                let req = await api.get("/stats/flags/tick");
+                if (req.status == 200)
+                    res = await req.json();
+            } catch (exception) {
+                console.log(exception);
+            }
             const stamp_now = Date.now() / 1000;
             const tick_now = stamp_now - (stamp_now % 120);
             console.log(tick_now);
@@ -152,8 +157,14 @@ export default {
             };
         },
         async getFlagsAccepted() {
-            let res = await api.get("/stats/flags/all");
-            res = await res.json();
+            let res = { queued: 0, accepted: 0, rejected: 0 }
+            try {
+                let req = await api.get("/stats/flags/all");
+                if (req.status == 200)
+                    res = await req.json();
+            } catch (exception) {
+                console.log(exception);
+            }
 
             this.flagsAccepted = {
                 labels: ["Queued", "Accepted", "Rejected"],
@@ -167,8 +178,14 @@ export default {
             };
         },
         async getFlagsAcceptedPerExploit() {
-            let res = await api.get("/stats/flags/scripts/all");
-            res = await res.json();
+            let res = []
+            try {
+                let req = await api.get("/stats/flags/scripts/all");
+                if (req.status == 200)
+                    res = await req.json();
+            } catch (exception) {
+                console.log(exception);
+            }
 
             let data = [
                 {
