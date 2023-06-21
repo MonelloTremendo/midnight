@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -29,7 +30,7 @@ def get_flags_all(db: Session = Depends(get_db)) -> FlagStats:
     if None not in result:
         return FlagStats.from_orm(result)
     else:
-        return FlagStats()
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
 
 
 @router.get("/flags/tick")
@@ -53,7 +54,7 @@ def get_flags_tick(db: Session = Depends(get_db)) -> List[FlagStatsPerTick]:
         result = [FlagStatsPerTick.from_orm(tick) for tick in result]
         return result
     else:
-        return []
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
 
 
 @router.get("/flags/script/{exploit_id}")
@@ -76,7 +77,7 @@ def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> List[Flag
         result = [FlagStatsPerTick.from_orm(tick) for tick in result]
         return result
     else:
-        return []
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
 
 @router.get("/flags/script/{exploit_id}/all")
 def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> FlagStats:
@@ -95,7 +96,7 @@ def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> FlagStats
     if None not in result:
         return FlagStats.from_orm(result)
     else:
-        return FlagStats()
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
     
 @router.get("/flags/script/{exploit_id}/teams")
 def get_flags_script_teams_lastrun(exploit_id:int, db: Session = Depends(get_db)) -> List[FlagStatsPerTickTeam]:
@@ -126,7 +127,7 @@ def get_flags_script_teams_lastrun(exploit_id:int, db: Session = Depends(get_db)
         result = [FlagStatsPerTickTeam.from_orm(tick) for tick in result]
         return result
     else:
-        return []
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
 
 
 @router.get("/flags/scripts/time/{timestamp}")
@@ -152,7 +153,7 @@ def get_flags_scripts_timestamp(timestamp:int, db: Session = Depends(get_db)) ->
         result = [FlagsExploitTimestamp.from_orm(tick) for tick in result]
         return result
     else:
-        return []
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
 
 
 @router.get("/flags/scripts/all")
@@ -175,4 +176,50 @@ def get_flags_scripts(db: Session = Depends(get_db)) -> List[FlagStatsTeam]:
         result = [FlagStatsTeam.from_orm(tick) for tick in result]
         return result
     else:
-        return []
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
+    
+@router.get("/flags/exploit/{exploit_id}/teams")
+def get_flags_sexploit_teams(exploit_id: int, db: Session = Depends(get_db)):
+    teamids = db.execute(text("SELECT id FROM teams")).fetchall()
+
+    query = """
+        SELECT 
+            runs.team_id,
+            COUNT(*) AS total,
+            (end_time - MOD(end_time, 120)) AS tick_start
+        FROM runs INNER JOIN flags ON runs.id = flags.run_id
+        WHERE runs.exploit_id = :exploit_id
+        GROUP BY tick_start, runs.team_id
+        ORDER BY tick_start
+        """
+
+    result = db.execute(text(query), { "exploit_id": exploit_id }).fetchall()
+
+    if not result:
+        return JSONResponse(status_code=404, content={"message": "stats not found"})
+
+    times = set(map(lambda item: item[2], result))
+
+    for i in range(list(times)[0], list(times)[-1], 120):
+        times.add(i)
+
+    out = {i: {} for i in times}
+
+    for time in times:
+        data = list(filter(lambda item: item[2] == time, result))
+
+        for team in teamids:
+            d = list(filter(lambda item: item[0] == team[0], data))
+
+            if len(d) > 0:
+                out[time][team[0]] = d[0][1]
+            else:
+                out[time][team[0]] = 0
+
+    
+    return out
+    #if result:
+    #    result = [FlagStatsTeam.from_orm(tick) for tick in result]
+    #    return result
+    #else:
+    #    return JSONResponse(status_code=404, content={"message": "stats not found"})
