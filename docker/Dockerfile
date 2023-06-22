@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
 
 WORKDIR /code
 
-COPY . /code/
+COPY .. /code/
 RUN mkdir -p exploits
 
 RUN python3 -m venv environment

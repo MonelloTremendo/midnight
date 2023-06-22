@@ -4,11 +4,10 @@
     "private": true,
     "scripts": {
         "serve": "vue-cli-service serve",
-        "build": "vue-cli-service build"
+        "build": "vue-cli-service build --mode prod"
     },
     "dependencies": {
         "@babel/runtime": "^7.22.5",
-        "bootstrap": "^5.3.0",
         "bootstrap-icons": "^1.10.5",
         "chart.js": "^4.3.0",
         "core-js": "^3.8.3",
@@ -27,7 +26,12 @@
         "@vue/cli-plugin-babel": "~5.0.0",
         "@vue/cli-plugin-pwa": "~5.0.0",
         "@vue/cli-plugin-router": "~5.0.0",
-        "@vue/cli-service": "~5.0.0"
+        "@vue/cli-service": "~5.0.0",
+        "bootstrap": "^5.3.0",
+        "css-loader": "^6.8.1",
+        "mini-css-extract-plugin": "^2.7.6",
+        "sass-loader": "^13.3.2",
+        "style-loader": "^3.3.3"
     },
     "browserslist": [
         "> 1%",

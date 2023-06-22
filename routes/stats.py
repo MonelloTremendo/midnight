@@ -8,11 +8,13 @@ from typing import List
 from database.connection import get_db
 from database.models import FlagStats, FlagStatsPerTick, FlagStatsTeam, FlagsExploitTimestamp, FlagStatsPerTickTeam
 
+
 router = APIRouter(
     prefix="/stats",
     tags=["stats"],
     responses={404: {"description": "Not found"}},
 )
+
 
 @router.get("/flags/all")
 def get_flags_all(db: Session = Depends(get_db)) -> FlagStats:
@@ -30,7 +32,7 @@ def get_flags_all(db: Session = Depends(get_db)) -> FlagStats:
     if None not in result:
         return FlagStats.from_orm(result)
     else:
-        return JSONResponse(status_code=404, content={"message": "stats not found"})
+        return []
 
 
 @router.get("/flags/tick")
@@ -52,6 +54,29 @@ def get_flags_tick(db: Session = Depends(get_db)) -> List[FlagStatsPerTick]:
 
     if result:
         result = [FlagStatsPerTick.from_orm(tick) for tick in result]
+        return result
+    else:
+        return []
+
+
+@router.get("/flags/scripts")
+def get_flags_scripts(db: Session = Depends(get_db)) -> List[FlagStatsTeam]:
+    query = """
+        SELECT
+            exploits.id,
+            exploits.name,
+            COUNT(*) AS total,
+            SUM(status=0) AS queued,
+            SUM(status=1) AS accepted,
+            SUM(status=2) AS rejected
+        FROM (runs INNER JOIN flags ON runs.id = flags.run_id) INNER JOIN exploits ON runs.exploit_id = exploits.id
+        GROUP BY runs.exploit_id, exploits.name;
+        """
+
+    result = db.execute(text(query)).fetchall()
+
+    if result:
+        result = [FlagStatsTeam.from_orm(tick) for tick in result]
         return result
     else:
         return JSONResponse(status_code=404, content={"message": "stats not found"})
@@ -78,6 +103,7 @@ def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> List[Flag
         return result
     else:
         return JSONResponse(status_code=404, content={"message": "stats not found"})
+
 
 @router.get("/flags/script/{exploit_id}/all")
 def get_flags_script(exploit_id:int, db: Session = Depends(get_db)) -> FlagStats:
@@ -155,71 +181,51 @@ def get_flags_scripts_timestamp(timestamp:int, db: Session = Depends(get_db)) ->
     else:
         return JSONResponse(status_code=404, content={"message": "stats not found"})
 
-
-@router.get("/flags/scripts/all")
-def get_flags_scripts(db: Session = Depends(get_db)) -> List[FlagStatsTeam]:
+    
+@router.get("/flags/{exploit_id}/all")
+def get_flags_exploit(exploit_id: int, db: Session = Depends(get_db)):
     query = """
-        SELECT
-            exploits.id,
-            exploits.name,
+        SELECT 
             COUNT(*) AS total,
             SUM(status=0) AS queued,
             SUM(status=1) AS accepted,
-            SUM(status=2) AS rejected
-        FROM (runs INNER JOIN flags ON runs.id = flags.run_id) INNER JOIN exploits ON runs.exploit_id = exploits.id
-        GROUP BY runs.exploit_id, exploits.name;
-        """
-
-    result = db.execute(text(query)).fetchall()
-
-    if result:
-        result = [FlagStatsTeam.from_orm(tick) for tick in result]
-        return result
-    else:
-        return JSONResponse(status_code=404, content={"message": "stats not found"})
-    
-@router.get("/flags/exploit/{exploit_id}/teams")
-def get_flags_sexploit_teams(exploit_id: int, db: Session = Depends(get_db)):
-    teamids = db.execute(text("SELECT id FROM teams")).fetchall()
-
-    query = """
-        SELECT 
-            runs.team_id,
-            COUNT(*) AS total,
+            SUM(status=2) AS rejected,
             (end_time - MOD(end_time, 120)) AS tick_start
         FROM runs INNER JOIN flags ON runs.id = flags.run_id
         WHERE runs.exploit_id = :exploit_id
-        GROUP BY tick_start, runs.team_id
+        GROUP BY tick_start
         ORDER BY tick_start
         """
 
     result = db.execute(text(query), { "exploit_id": exploit_id }).fetchall()
 
-    if not result:
-        return JSONResponse(status_code=404, content={"message": "stats not found"})
-
-    times = set(map(lambda item: item[2], result))
-
-    for i in range(list(times)[0], list(times)[-1], 120):
-        times.add(i)
-
-    out = {i: {} for i in times}
-
-    for time in times:
-        data = list(filter(lambda item: item[2] == time, result))
-
-        for team in teamids:
-            d = list(filter(lambda item: item[0] == team[0], data))
-
-            if len(d) > 0:
-                out[time][team[0]] = d[0][1]
-            else:
-                out[time][team[0]] = 0
-
+    if result:
+        result = [FlagStatsPerTick.from_orm(tick) for tick in result]
+        return result
+    else:
+        return []
     
-    return out
-    #if result:
-    #    result = [FlagStatsTeam.from_orm(tick) for tick in result]
-    #    return result
-    #else:
-    #    return JSONResponse(status_code=404, content={"message": "stats not found"})
+
+@router.get("/flags/{exploit_id}/{team_id}")
+def get_flags_exploit_teams(exploit_id: int, team_id: int, db: Session = Depends(get_db)) -> List[FlagStatsPerTick]:
+    query = """
+        SELECT 
+            COUNT(*) AS total,
+            SUM(status=0) AS queued,
+            SUM(status=1) AS accepted,
+            SUM(status=2) AS rejected,
+            (end_time - MOD(end_time, 120)) AS tick_start
+        FROM runs INNER JOIN flags ON runs.id = flags.run_id
+        WHERE runs.exploit_id = :exploit_id
+        GROUP BY tick_start, runs.team_id
+        HAVING runs.team_id = :team_id
+        ORDER BY tick_start
+        """
+
+    result = db.execute(text(query), { "exploit_id": exploit_id, "team_id": team_id }).fetchall()
+
+    if result:
+        result = [FlagStatsPerTick.from_orm(tick) for tick in result]
+        return result
+    else:
+        return []

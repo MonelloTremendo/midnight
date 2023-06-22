@@ -1,54 +1,34 @@
 import settings from './settings.js';
 
 const api = {
-    async get(endpoint = '/') {
-        try {
-            return await fetch(settings.api_url + endpoint, {
-                method: 'GET',
-            });
-        } catch (exception) {
-            console.log(exception);
-        }
+    get(endpoint = '/') {
+        return fetch(settings.api_url + endpoint, {
+            method: 'GET',
+        });
     },
-    async put(endpoint = '/') {
-        try {
-            return await fetch(settings.api_url + endpoint, {
-                method: 'PUT',
-            });
-        } catch (exception) {
-            console.log(exception);
-        }
+    put(endpoint = '/') {
+        return fetch(settings.api_url + endpoint, {
+            method: 'PUT',
+        });
     },
-    async delete(endpoint = '/') {
-        try {
-            return await fetch(settings.api_url + endpoint, {
-                method: 'DELETE',
-            });
-        } catch (exception) {
-            console.log(exception);
-        }
+    delete(endpoint = '/') {
+        return fetch(settings.api_url + endpoint, {
+            method: 'DELETE',
+        });
     },
-    async post(endpoint = '/', params = {}) {
-        try {
-            return await fetch(settings.api_url + endpoint, {
-                method: 'POST',
-                body: JSON.stringify(params),
-                headers: { 'content-type': 'application/json' },
-            });
-        } catch (exception) {
-            console.log(exception);
-        }
+    post(endpoint = '/', params = {}) {
+        return fetch(settings.api_url + endpoint, {
+            method: 'POST',
+            body: JSON.stringify(params),
+            headers: { 'content-type': 'application/json' },
+        });
     },
-    async patch(endpoint = '/', params = {}) {
-        try {
-            return await fetch(settings.api_url + endpoint, {
-                method: 'PATCH',
-                body: JSON.stringify(params),
-                headers: { 'content-type': 'application/json' },
-            });
-        } catch (exception) {
-            console.log(exception);
-        }
+    patch(endpoint = '/', params = {}) {
+        return fetch(settings.api_url + endpoint, {
+            method: 'PATCH',
+            body: JSON.stringify(params),
+            headers: { 'content-type': 'application/json' },
+        });
     },
 };
 

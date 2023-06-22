@@ -7,7 +7,6 @@ const routes = [
     { path: '/exploits', name: 'exploits', component: () => import('@/views/ExploitsView.vue') },
     { path: '/exploits/:id/edit', name: 'exploit-edit', component: () => import('@/views/ExploitEditView.vue') },
     { path: '/exploits/:id/stats', name: 'exploit-stats', component: () => import('@/views/ExploitStatsView.vue') },
-    { path: '/exploits/:id/teams', name: 'exploit-teams', component: () => import('@/views/ExploitTeamsView.vue') },
 ]
 
 const router = createRouter({

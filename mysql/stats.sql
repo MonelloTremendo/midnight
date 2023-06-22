@@ -145,8 +145,9 @@ HAVING tick_start = (
 SELECT * FROM runs;
 
 
+-- /stats/flags/{exploit_id}/{team_id}
+
 SELECT 
-    runs.team_id,
     COUNT(*) AS total,
     SUM(status=0) AS queued,
     SUM(status=1) AS accepted,
@@ -155,4 +156,18 @@ SELECT
 FROM runs INNER JOIN flags ON runs.id = flags.run_id
 WHERE runs.exploit_id = 1
 GROUP BY tick_start, runs.team_id
-ORDER BY tick_start
+HAVING runs.team_id = 2
+ORDER BY tick_start;
+
+-- /stats/flags/{exploit_id}/all
+
+SELECT 
+    COUNT(*) AS total,
+    SUM(status=0) AS queued,
+    SUM(status=1) AS accepted,
+    SUM(status=2) AS rejected,
+    (end_time - MOD(end_time, 120)) AS tick_start
+FROM runs INNER JOIN flags ON runs.id = flags.run_id
+WHERE runs.exploit_id = 1
+GROUP BY tick_start
+ORDER BY tick_start;

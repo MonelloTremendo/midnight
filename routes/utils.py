@@ -12,7 +12,7 @@ import asyncio
 
 
 router = APIRouter(
-    prefix="/api",
+    prefix="/utils",
     tags=["api"],
     responses={404: {"description": "Not found"}},
 )

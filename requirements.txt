@@ -2,8 +2,10 @@ fastapi>=0.97.0
 pydantic>=1.10.8
 uvicorn>=0.22.0
 SQLAlchemy>=2.0.16
-mysqlclient
+mysqlclient==2.1.1
 websockets
 
 pwntools
 requests
+fake_useragent
+faker

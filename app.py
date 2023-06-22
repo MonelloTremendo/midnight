@@ -1,10 +1,10 @@
 import uvicorn
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes.websocket import router as ws_router
-from routes.api import router as api_router
+from routes.utils import router as utils_router
 from routes.teams import router as teams_router
 from routes.exploits import router as expl_router
 from routes.stats import router as stats_router
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router)
+app.include_router(utils_router)
 app.include_router(teams_router)
 app.include_router(expl_router)
 app.include_router(stats_router)
@@ -31,4 +31,4 @@ app.include_router(ws_router)
 threading.Thread(target=submit_loop).start()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, root_path="/api")

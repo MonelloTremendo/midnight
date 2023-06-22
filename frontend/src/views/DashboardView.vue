@@ -103,7 +103,6 @@ export default {
         };
     },
     methods: {
-        // DONT TOUCH PLEASE
         async getFlagsTick() {
             let res = [];
             try {
@@ -180,7 +179,7 @@ export default {
         async getFlagsAcceptedPerExploit() {
             let res = []
             try {
-                let req = await api.get("/stats/flags/scripts/all");
+                let req = await api.get("/stats/flags/scripts");
                 if (req.status == 200)
                     res = await req.json();
             } catch (exception) {

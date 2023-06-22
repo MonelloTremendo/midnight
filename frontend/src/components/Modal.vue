@@ -4,15 +4,19 @@
     <div class="modal-dialog" :class="{ 'modal-dialog-centered':propCenter }">
         <div class="modal-content">
         <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">{{ propTitle }}</h1>
+            <h4 class="modal-title" id="exampleModalLabel">{{ propTitle }}</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <slot></slot>
         </div>
         <div class="modal-footer">
-            <button @click="propNopFunc" type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ propNopText }}</button>
-            <button @click="propYepFunc" type="button" class="btn btn-primary" data-bs-dismiss="modal">{{ propYepText }}</button>
+            <button v-if="propNopFunc !== undefined" @click="propNopFunc" type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                {{ propNopText }}
+            </button>
+            <button v-if="propYepFunc !== undefined" @click="propYepFunc" type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                {{ propYepText }}
+            </button>
         </div>
         </div>
     </div>
