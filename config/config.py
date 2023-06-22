@@ -2,18 +2,8 @@ CONFIG = {
     'FLAG_FORMAT': r'[A-Z0-9]{31}=',
     'EXPLOIT_PATH': 'exploits',
 
-    'SYSTEM_PROTOCOL': 'ructf_tcp',
-    'SYSTEM_HOST': '127.0.0.1',
-    'SYSTEM_PORT': 31337,
-
-    'SUBMIT_FLAG_LIMIT': 50,
-    'SUBMIT_PERIOD': 5,
-    'FLAG_LIFETIME': 5 * 60,
-
-    'SERVER_PASSWORD': '1234',
-
-    'ENABLE_API_AUTH': False,
-    'API_TOKEN': '00000000000000000000'
+    'CHECKSYSTEM_URL': 'http://10.10.0.1:8080/flags',
+    'CHECKSYSTEM_TOKEN': "fc789ce89a367046cd1ecbf005c74efa"
 }
 
 def get_config():
