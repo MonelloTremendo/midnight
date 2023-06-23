@@ -66,8 +66,8 @@ for flagid in flagids:
 `;
 
 export default {
-    api_url: "/api",
-    websocket_url: "/api/ws/",
+    api_url: "http://10.80.8.2:8000",
+    websocket_url: "http://10.80.8.2:8000/ws/",
     templates: [
         {
             "name": "Empty",

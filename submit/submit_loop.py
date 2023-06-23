@@ -14,7 +14,7 @@ def submit_loop():
     config = get_config()
 
     while True:
-        flags = connection.execute(text("SELECT * FROM flags WHERE status = 0 LIMIT 100")).fetchall()
+        flags = 1connection.execute(text("SELECT * FROM flags WHERE status = 0 LIMIT 100")).fetchall()
         flags = [Flag.from_orm(flag) for flag in flags]
 
         try:
