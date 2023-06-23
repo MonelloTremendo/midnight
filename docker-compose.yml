@@ -3,8 +3,6 @@ version: "3.8"
 services:
   database:
     build: ./mysql
-    ports:
-      - 3306:3306
 
   api:
     build:
@@ -13,12 +11,12 @@ services:
     environment:
       - SQLALCHEMY_CONNECTION_STRING=mysql+mysqldb://root:midnight@database/midnight
     ports:
-      - 8001:8000
+      - 8000:8000
 
   frontend:
     build: ./frontend
     ports:
-      - 81:80
+      - 80:80
 
 volumes:
   db:

@@ -4,6 +4,7 @@ uvicorn>=0.22.0
 SQLAlchemy>=2.0.16
 mysqlclient==2.1.1
 websockets
+uvloop
 
 pwntools
 requests

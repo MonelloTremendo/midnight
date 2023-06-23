@@ -13,7 +13,6 @@ from typing import List
 import threading
 from submit.submitter import submit_loop
 
-
 app = FastAPI()
 
 app.add_middleware(
