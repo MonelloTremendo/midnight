@@ -1,6 +1,5 @@
 FROM node:lts-alpine as builder
 
-
 WORKDIR /app
 
 COPY package*.json ./
@@ -13,7 +12,6 @@ RUN npm run build
 
 
 FROM nginx:latest
-
 
 COPY nginx.conf /etc/nginx/
 

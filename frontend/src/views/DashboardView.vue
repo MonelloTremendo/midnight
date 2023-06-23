@@ -78,6 +78,7 @@ export default {
                     },
                     y: {
                         grid: { color: "#3f3f3f", borderColor: "#8b8b8b" },
+                        min: 0,
                     },
                 },
             },

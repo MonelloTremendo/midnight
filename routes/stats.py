@@ -143,7 +143,7 @@ def get_flags_script_teams_lastrun(exploit_id:int, db: Session = Depends(get_db)
             FROM runs 
             GROUP BY tick_start 
             ORDER BY tick_start DESC 
-            LIMIT 1, 1
+            LIMIT 1
         )
         """
     

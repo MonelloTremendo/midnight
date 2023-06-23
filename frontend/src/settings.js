@@ -1,6 +1,6 @@
-//import default_py from "../assets/code_templates/default.py?inline";
-//import randomFlags_py from "../assets/code_templates/random_flags.py?inline";
-//import web_py from "../assets/code_templates/web.py?inline";
+//import default_py from "../assets/code_templates/default.py";
+//import randomFlags_py from "../assets/code_templates/random_flags.py";
+//import web_py from "../assets/code_templates/web.py";
 
 const default_py = `\
 #!/usr/bin/env python3
@@ -66,8 +66,10 @@ for flagid in flagids:
 `;
 
 export default {
-    api_url: "http://10.80.8.2:8000",
-    websocket_url: "http://10.80.8.2:8000/ws/",
+    api_url: import.meta.env.VITE_API_URL,
+    websocket_url: import.meta.env.VITE_API_URL + "/ws",
+    FLAG_WARNING_LIMIT: 10,
+    TEAMS_WARNING_LIMIT: .25, // in %
     templates: [
         {
             "name": "Empty",
