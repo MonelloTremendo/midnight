@@ -115,7 +115,7 @@ export default {
             }
             const stamp_now = Date.now() / 1000;
             const tick_now = stamp_now - (stamp_now % 120);
-            console.log(tick_now);
+            //console.log(tick_now);
 
             let out = [];
 
@@ -223,7 +223,7 @@ export default {
             await this.getFlagsTick();
             await this.getFlagsAccepted();
             await this.getFlagsAcceptedPerExploit();
-        }, 30 * 1000);
+        }, 20 * 1000);
     },
     async unmounted() {
         clearInterval(this.timer);

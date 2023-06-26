@@ -68,8 +68,10 @@ for flagid in flagids:
 export default {
     api_url: import.meta.env.VITE_API_URL,
     websocket_url: import.meta.env.VITE_API_URL + "/ws",
+    // api_url: 'http://100.125.5.92:8000',
+    // websocket_url: 'http://100.125.5.92:8000/ws',
     FLAG_WARNING_LIMIT: 10,
-    TEAMS_WARNING_LIMIT: .25, // in %
+    TEAMS_WARNING_LIMIT: 1, // in %
     templates: [
         {
             "name": "Empty",
