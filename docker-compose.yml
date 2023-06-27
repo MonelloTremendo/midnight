@@ -3,6 +3,10 @@ version: "3.8"
 services:
   database:
     build: ./mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
 
   api:
     build:

@@ -9,8 +9,8 @@ WORKDIR /code
 COPY .. /code/
 RUN mkdir -p exploits
 
-RUN python3 -m venv environment
+#RUN python3 -m venv environment
 
-RUN ./environment/bin/pip install --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --no-cache-dir --break-system-packages --upgrade -r requirements.txt
 
-CMD ["./docker/wait-for.sh", "-t", "0", "database:3306", "--", "./environment/bin/python", "app.py"]
+CMD ["./docker/wait-for.sh", "-t", "0", "database:3306", "--", "python3", "app.py"]
